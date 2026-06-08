@@ -200,6 +200,7 @@ canvas{display:block;width:100%;height:85px;cursor:crosshair;touch-action:none;b
 .actions{position:fixed;bottom:0;left:0;right:0;background:white;border-top:2px solid var(--gb);padding:10px 14px;display:flex;gap:8px;z-index:200;box-shadow:0 -3px 12px rgba(0,0,0,.07);}
 .btn-r{flex:0 0 auto;padding:11px 12px;border-radius:7px;border:1.5px solid var(--gb);background:white;color:var(--mu);font-family:'Barlow',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
 .btn-e{flex:0 0 auto;padding:11px 12px;border-radius:7px;border:1.5px solid var(--teal);background:white;color:var(--teal);font-family:'Barlow',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+.btn-pdf{flex:0 0 auto;padding:11px 14px;border-radius:7px;border:none;background:var(--gd);color:white;font-family:'Barlow',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
 .btn-v{flex:1;padding:11px;border-radius:7px;border:none;background:var(--orange);color:white;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:3px;text-transform:uppercase;cursor:pointer;}
 
 .toast{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-8px);background:var(--gd);color:white;padding:10px 22px;border-radius:20px;font-size:12px;font-weight:700;opacity:0;transition:all .3s;z-index:999;white-space:nowrap;border-left:3px solid var(--teal);pointer-events:none;}
@@ -215,6 +216,42 @@ canvas{display:block;width:100%;height:85px;cursor:crosshair;touch-action:none;b
   .photos-grid{grid-template-columns:repeat(2,1fr);}
   .heures-grid{grid-template-columns:1fr 1fr;}
   .heures-result{grid-template-columns:1fr 1fr;}
+}
+
+/* ═══ IMPRESSION / PDF ═══ */
+@media print {
+  body { background: white !important; font-family: Arial, sans-serif; font-size: 11px; color: #000; }
+  .hdr, .top-bar, .actions, .toast, .odoo-box, .tech-box, .tech-load,
+  .btn-voice, .btn-ai, .ai-ctrls, .btn-add, .btn-del, .btn-add-ph,
+  .card-head .chev, .conf-zone, .sugg-list { display: none !important; }
+  .card { border: none !important; box-shadow: none !important; margin-bottom: 6px !important; page-break-inside: avoid; }
+  .card-head { background: #f5f4f0 !important; padding: 6px 10px !important; cursor: default; }
+  .card-head h2 { font-size: 11px !important; color: #000 !important; }
+  .cb { padding: 8px 10px !important; gap: 8px !important; }
+  input, select, textarea { background: transparent !important; border: none !important; border-bottom: 1px solid #ccc !important; border-radius: 0 !important; padding: 2px 4px !important; font-size: 11px !important; }
+  .container { padding: 0 !important; max-width: 100% !important; }
+  .page { display: block !important; }
+  .print-header { display: flex !important; }
+  .print-footer { display: block !important; }
+  .totaux { border: 1px solid #ccc !important; }
+  .tot-row { padding: 5px 10px !important; }
+  .tr:last-child { background: #4A4A4A !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .sig-grid { margin-top: 10px; }
+  canvas { border: 1px solid #ccc !important; height: 60px !important; }
+  .piece-card { background: #f9f9f9 !important; border: 1px solid #ddd !important; }
+  .conf-zone { display: none !important; }
+  .heures-grid { padding: 8px 10px 0 !important; }
+  .h-val { border: 1px solid #ddd !important; }
+  /* PAGE 2 - CGV */
+  .cgv-print { display: block !important; page-break-before: always; padding: 20px; font-size: 9px; line-height: 1.6; color: #333; }
+  .cgv-print h2 { font-size: 12px; font-weight: bold; margin-bottom: 12px; border-bottom: 2px solid #EA7807; padding-bottom: 4px; }
+  .cgv-print h3 { font-size: 10px; font-weight: bold; margin: 10px 0 4px; text-transform: uppercase; letter-spacing: 1px; }
+  .cgv-print p, .cgv-print li { margin-bottom: 4px; }
+  .cgv-print ul { margin-left: 14px; }
+}
+@media screen {
+  .print-header { display: none; }
+  .cgv-print { display: none; }
 }
 </style>
 </head>
@@ -255,6 +292,21 @@ canvas{display:block;width:100%;height:85px;cursor:crosshair;touch-action:none;b
 </div>
 
 <div class="container">
+
+<!-- EN-TÊTE IMPRESSION -->
+<div class="print-header" style="display:none;align-items:flex-start;justify-content:space-between;border-bottom:3px solid #EA7807;padding-bottom:10px;margin-bottom:12px;">
+  <div>
+    <div style="font-family:Arial,sans-serif;font-weight:900;font-size:28px;letter-spacing:4px;color:#4A4A4A;">ISS<span style="color:#EA7807;">É</span>O</div>
+    <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#999;">Chariots Élévateurs · Vente Location Maintenance</div>
+    <div style="font-size:9px;color:#666;margin-top:4px;">20 Allée Marie Curie – ZA Lavalduc – 13270 Fos-sur-Mer<br>Tél : 06 07 08 69 58 · 04 42 06 70 14 · contact@isseochariot.fr</div>
+  </div>
+  <div style="text-align:right;">
+    <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#999;">Avis d'intervention N°</div>
+    <div style="font-family:monospace;font-size:20px;font-weight:900;color:#EA7807;" id="print-num">—</div>
+    <div style="font-size:9px;color:#666;" id="print-date">—</div>
+  </div>
+</div>
+
 
   <!-- IMPORT ODOO -->
   <div class="odoo-box" id="odoo-zone">
@@ -454,11 +506,42 @@ canvas{display:block;width:100%;height:85px;cursor:crosshair;touch-action:none;b
     </div>
   </div>
 
+
+<!-- CGV PAGE 2 IMPRESSION -->
+<div class="cgv-print">
+  <h2>CONDITIONS GÉNÉRALES D'INTERVENTION — ISSEO CHARIOTS ÉLÉVATEURS</h2>
+  <h3>I – Formation du contrat</h3>
+  <p>Toute commande implique l'acceptation pleine et entière des présentes conditions. En cas de dépannage, le contrat est réputé conclu du seul fait du déplacement du technicien ISSEO sur site. Aucune clause contraire ne peut être opposée à ISSEO sans acceptation expresse et écrite.</p>
+  <h3>II – Prix et conditions de paiement</h3>
+  <p>Les prix s'entendent nets hors taxes, selon le tarif en vigueur au jour de l'intervention. Les factures sont payables à <strong>30 jours date de facture</strong>, sauf accord express écrit préalable. Tout retard entraîne de plein droit, sans mise en demeure : des pénalités au taux légal majoré de 7 points, et une indemnité forfaitaire de <strong>40 €</strong> pour frais de recouvrement. En cas de non-paiement, ISSEO se réserve le droit de suspendre toute intervention.</p>
+  <h3>III – Tarification des interventions</h3>
+  <p><strong>La facturation s'effectue par demi-heure, toute demi-heure entamée étant intégralement due.</strong> Majorations appliquées sur la main d'œuvre :</p>
+  <ul>
+    <li>+50% après 18h en semaine (lundi au vendredi)</li>
+    <li>+100% le samedi avant 18h · +150% le samedi après 18h</li>
+    <li>+150% dimanches et jours fériés avant 18h · +200% après 18h</li>
+  </ul>
+  <p>Les frais de déplacement sont facturés selon les conditions en vigueur au jour de l'intervention.</p>
+  <h3>IV – Devis et diagnostics</h3>
+  <p>Les estimations de réparation sont gratuites si elles ne nécessitent aucun démontage. Dans le cas contraire, les frais de main d'œuvre et de déplacement sont facturés, même si le devis n'est pas accepté.</p>
+  <h3>V – Réserve de propriété</h3>
+  <p>Les pièces fournies restent la propriété d'ISSEO jusqu'au paiement intégral. Les risques sont transférés au client dès la livraison.</p>
+  <h3>VI – Responsabilités</h3>
+  <p>ISSEO s'engage à réaliser les travaux dans les règles de l'art. Tout vice apparent doit être signalé par écrit dans les <strong>8 jours ouvrés</strong> suivant l'intervention. Cette disposition ne couvre pas l'usure normale ni les avaries dues à une mauvaise utilisation ou intervention tierce.</p>
+  <h3>VII – Juridiction compétente</h3>
+  <p>Tout litige est soumis, de convention expresse, à la compétence exclusive du <strong>Tribunal de Commerce de Tarascon</strong>, même en cas de pluralité de défendeurs ou d'appel en garantie.</p>
+  <div style="margin-top:16px;padding-top:8px;border-top:2px solid #EA7807;font-size:9px;color:#666;text-align:center;">
+    <strong>ISSEO CHARIOTS ÉLÉVATEURS</strong> – SASU au capital de 3 000 € – SIRET 911 977 809 00019 – APE 3312Z – TVA FR36 911 977 809<br>
+    20 Allée Marie Curie – ZA Lavalduc – 13270 Fos-sur-Mer | 37d chemin de Margaillan – 13200 Arles
+  </div>
+</div>
+
 </div><!-- /container -->
 
 <div class="actions">
   <button class="btn-r" onclick="resetForm()">↺</button>
-  <button class="btn-e" onclick="exportJSON()">⬇</button>
+  <button class="btn-e" onclick="exportJSON()" title="Export JSON">⬇</button>
+  <button class="btn-pdf" onclick="imprimerPDF()">🖨 PDF</button>
   <button class="btn-v" onclick="valider()">VALIDER</button>
 </div>
 <div class="toast" id="toast"></div>
@@ -996,6 +1079,18 @@ function resetForm(){
   ['ai-objet','ai-travaux','ai-prevoir'].forEach(id=>{const b=document.getElementById(id);if(b){b.disabled=true;b.innerHTML='✨ Reformuler';}});
   const st=document.getElementById('status-txt');st.textContent='● BROUILLON';st.classList.remove('ok');
   setPrix('show-all');setMode('bureau');initNum();updateProg();toast('Réinitialisé');
+}
+
+
+// ── IMPRESSION PDF ──
+function imprimerPDF(){
+  // Mettre à jour l'en-tête d'impression
+  const printNum=document.getElementById('print-num');
+  const printDate=document.getElementById('print-date');
+  if(printNum) printNum.textContent=currentNum||'—';
+  if(printDate) printDate.textContent=document.getElementById('date_inter')?.value||new Date().toLocaleDateString('fr-FR');
+  // Lancer l'impression
+  window.print();
 }
 
 // ── TOAST ──
