@@ -658,7 +658,7 @@ async function importerOdoo(input){
   st.style.display='flex';stTxt.textContent='Lecture du devis Odoo…';
   const b64=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.readAsDataURL(file);});
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+    const resp=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,
         messages:[{role:'user',content:[
           {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},
@@ -702,7 +702,7 @@ async function analyserPlaque(input){
   const rd=document.getElementById('ai-reading');rd.style.display='flex';
   const b64=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.readAsDataURL(file);});
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+    const resp=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,
         messages:[{role:'user',content:[
           {type:'image',source:{type:'base64',media_type:file.type,data:b64}},
@@ -815,16 +815,28 @@ function startVoice(fieldId,btn){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){toast('⚠ Micro non supporté sur ce navigateur',true);return;}
   if(recognition){recognition.stop();return;}
-  recognition=new SR();recognition.lang='fr-FR';recognition.continuous=false;recognition.interimResults=true;
+  recognition=new SR();recognition.lang='fr-FR';recognition.continuous=true;recognition.interimResults=true;
   btn.classList.add('recording');btn.textContent='⏹ Arrêter';
+  let fullText='';
   recognition.onresult=e=>{
-    let txt='';for(let i=e.resultIndex;i<e.results.length;i++)txt+=e.results[i][0].transcript;
-    document.getElementById(fieldId).value=txt;
+    let interim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal) fullText+=e.results[i][0].transcript+' ';
+      else interim+=e.results[i][0].transcript;
+    }
+    document.getElementById(fieldId).value=(fullText+interim).trim();
     const ai=document.getElementById('ai-'+fieldId);if(ai)ai.disabled=false;
     chk(document.getElementById(fieldId));
   };
-  recognition.onend=()=>{btn.classList.remove('recording');btn.textContent='🎤 Dicter';recognition=null;};
-  recognition.onerror=()=>{btn.classList.remove('recording');btn.textContent='🎤 Dicter';toast('⚠ Erreur micro',true);};
+  recognition.onend=()=>{
+    // Redémarrer si toujours en mode recording (pause naturelle)
+    if(btn.classList.contains('recording')){
+      try{recognition.start();}catch(e){btn.classList.remove('recording');btn.textContent='🎤 Dicter';recognition=null;}
+    } else {btn.textContent='🎤 Dicter';recognition=null;}
+  };
+  recognition.onerror=e=>{
+    if(e.error!=='no-speech'){btn.classList.remove('recording');btn.textContent='🎤 Dicter';recognition=null;toast('⚠ Erreur micro',true);}
+  };
   recognition.start();
 }
 
@@ -838,7 +850,7 @@ async function reformulerIA(fieldId){
     a_prevoir:`SAV chariots élévateurs. Reformule ces travaux à prévoir en 1-2 phrases concises. Texte: "${txt}"`
   };
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+    const resp=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:150,messages:[{role:'user',content:prompts[fieldId]}]})});
     const data=await resp.json();const result=data.content?.[0]?.text;
     if(result){field.value=result.trim();field.classList.add('ok');toast('✨ Texte reformulé');}
