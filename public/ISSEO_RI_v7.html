@@ -810,12 +810,23 @@ function calcTotaux(){
 function fmt(n){return n.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';}
 
 // ── VOICE ──
-let recognition=null;
+let recognition=null, voiceActive=false;
 function startVoice(fieldId,btn){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){toast('⚠ Micro non supporté sur ce navigateur',true);return;}
-  if(recognition){recognition.stop();return;}
-  recognition=new SR();recognition.lang='fr-FR';recognition.continuous=true;recognition.interimResults=true;
+  // Si déjà en cours — ARRÊT volontaire
+  if(voiceActive){
+    voiceActive=false;
+    if(recognition)recognition.stop();
+    btn.classList.remove('recording');btn.textContent='🎤 Dicter';
+    return;
+  }
+  // Démarrage
+  voiceActive=true;
+  recognition=new SR();
+  recognition.lang='fr-FR';
+  recognition.continuous=true;
+  recognition.interimResults=true;
   btn.classList.add('recording');btn.textContent='⏹ Arrêter';
   let fullText='';
   recognition.onresult=e=>{
@@ -829,13 +840,18 @@ function startVoice(fieldId,btn){
     chk(document.getElementById(fieldId));
   };
   recognition.onend=()=>{
-    // Redémarrer si toujours en mode recording (pause naturelle)
-    if(btn.classList.contains('recording')){
-      try{recognition.start();}catch(e){btn.classList.remove('recording');btn.textContent='🎤 Dicter';recognition=null;}
-    } else {btn.textContent='🎤 Dicter';recognition=null;}
+    if(voiceActive){
+      // Pause naturelle — redémarrer
+      try{recognition.start();}catch(e){voiceActive=false;btn.classList.remove('recording');btn.textContent='🎤 Dicter';recognition=null;}
+    } else {
+      // Arrêt volontaire — ne pas redémarrer
+      btn.classList.remove('recording');btn.textContent='🎤 Dicter';recognition=null;
+    }
   };
   recognition.onerror=e=>{
-    if(e.error!=='no-speech'){btn.classList.remove('recording');btn.textContent='🎤 Dicter';recognition=null;toast('⚠ Erreur micro',true);}
+    if(e.error==='no-speech') return; // Ignorer silence
+    voiceActive=false;btn.classList.remove('recording');btn.textContent='🎤 Dicter';recognition=null;
+    if(e.error!=='aborted') toast('⚠ Erreur micro: '+e.error,true);
   };
   recognition.start();
 }
