@@ -30,6 +30,10 @@ body{font-family:'Barlow',sans-serif;background:var(--gbg);color:var(--gd);}
 .mode-tag.tech{background:rgba(8,145,178,.1);color:var(--tech);}
 .status-t{font-size:10px;font-weight:700;color:var(--mu);}
 .status-t.ok{color:var(--ok);}
+.save-indicator{font-size:10px;font-weight:600;color:var(--mu);transition:color .3s;}
+.save-indicator.saving{color:var(--orange);}
+.save-indicator.saved{color:var(--ok);}
+.save-indicator.error{color:var(--danger);}
 .prog-bar{height:3px;background:var(--gb);max-width:680px;margin:0 auto;overflow:hidden;}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--orange));width:0%;transition:width .4s;}
 
@@ -274,6 +278,7 @@ canvas{display:block;width:100%;height:85px;cursor:crosshair;touch-action:none;b
     <span class="num-v" id="num-display">RI-2026-????</span>
     <span class="mode-tag bureau" id="mode-tag">🖥 BUREAU</span>
     <span class="status-t" id="status-txt">● BROUILLON</span>
+    <span class="save-indicator" id="save-indicator">💾 —</span>
   </div>
   <div class="prog-bar"><div class="prog-fill" id="prog"></div></div>
 </div>
@@ -1130,6 +1135,153 @@ function toast(msg,warn=false){
   t.style.borderLeftColor=warn?'var(--danger)':'var(--teal)';
   t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);
 }
+
+// ── SAUVEGARDE AUTOMATIQUE ──
+let autoSaveTimer=null, lastSaveHash='', isDirty=false;
+
+function markDirty(){
+  isDirty=true;
+  setSaveIndicator('saving','💾 Modifié');
+  // Sauvegarde différée 5s après dernière modification
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer=setTimeout(()=>autoSave(),5000);
+}
+
+function setSaveIndicator(state,msg){
+  const el=document.getElementById('save-indicator');
+  if(!el)return;
+  el.className='save-indicator '+state;
+  el.textContent=msg;
+}
+
+async function autoSave(){
+  if(!isDirty)return;
+  const data=getFormData();
+  // Ne sauvegarder que si on a au moins le technicien ou client
+  if(!data.technicien&&!data.client)return;
+  
+  const hash=JSON.stringify({client:data.client,type:data.type,objet:data.objet,travaux:data.travaux,pieces:data.pieces});
+  if(hash===lastSaveHash)return; // Rien de changé
+  
+  setSaveIndicator('saving','💾 Sauvegarde…');
+  
+  try{
+    // Sauvegarde locale d'abord (toujours)
+    localStorage.setItem('isseo_autosave_'+currentNum, JSON.stringify(data));
+    localStorage.setItem('isseo_autosave_last', currentNum);
+    
+    // Sauvegarde Sheets avec statut BROUILLON
+    const saveData={...data, statut:'BROUILLON'};
+    const minimal={
+      numero:data.numero,date:data.date,technicien:data.technicien,
+      client:data.client,site:data.site,type:data.type||'',
+      mat_type:data.materiel?.type||'',mat_serie:data.materiel?.serie||'',
+      horametre:data.materiel?.horametre||'',
+      objet:data.objet||'',travaux:data.travaux||'',
+      total_ht:data.totaux?.ht||0,total_ttc:data.totaux?.ttc||0,
+      km:data.temps?.km||'',tps_inter:data.pointage?.tps_inter||0,
+      statut:'BROUILLON'
+    };
+    const params=new URLSearchParams({action:'saveRapport',...minimal});
+    await fetch(SHEET_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'});
+    
+    lastSaveHash=hash;
+    isDirty=false;
+    const now=new Date();
+    setSaveIndicator('saved','✓ '+now.getHours()+':'+String(now.getMinutes()).padStart(2,'0'));
+  }catch(e){
+    setSaveIndicator('error','⚠ Non sauvegardé');
+    // Garder en local au moins
+    localStorage.setItem('isseo_autosave_'+currentNum, JSON.stringify(data));
+  }
+}
+
+// Sauvegarde toutes les 30s si modifié
+setInterval(()=>{if(isDirty)autoSave();}, 30000);
+
+// Sauvegarde à la fermeture
+window.addEventListener('beforeunload', ()=>{
+  if(isDirty){
+    const data=getFormData();
+    localStorage.setItem('isseo_autosave_'+currentNum, JSON.stringify(data));
+    localStorage.setItem('isseo_autosave_last', currentNum);
+  }
+});
+
+// Récupérer la dernière sauvegarde au chargement
+function checkAutosave(){
+  const lastNum=localStorage.getItem('isseo_autosave_last');
+  if(lastNum&&lastNum!==currentNum){
+    const saved=localStorage.getItem('isseo_autosave_'+lastNum);
+    if(saved){
+      const data=JSON.parse(saved);
+      if(data.client||data.technicien){
+        if(confirm('Un rapport non terminé existe ('+lastNum+' — '+data.client+'). Le reprendre ?')){
+          chargerDepuisData(data);
+          currentNum=lastNum;
+          document.getElementById('num-display').textContent=currentNum;
+        }
+      }
+    }
+  }
+}
+
+function chargerDepuisData(data){
+  if(data.date)document.getElementById('date_inter').value=data.date;
+  if(data.technicien){const s=document.getElementById('tech_sel');for(let o of s.options)if(o.value===data.technicien){s.value=data.technicien;break;}}
+  if(data.client){document.getElementById('client').value=data.client;document.getElementById('client').classList.add('ok');}
+  if(data.site)document.getElementById('site').value=data.site;
+  if(data.num_contrat)document.getElementById('num_contrat').value=data.num_contrat;
+  if(data.type){document.querySelectorAll('.tbtn').forEach(b=>{if(b.textContent.trim()===data.type)b.classList.add('sel');});typeSelected=data.type;}
+  if(data.materiel){
+    if(data.materiel.type){document.getElementById('mat_type').value=data.materiel.type;document.getElementById('mat_type').classList.add('ok');}
+    if(data.materiel.serie){document.getElementById('mat_serie').value=data.materiel.serie;document.getElementById('mat_serie').classList.add('ok');}
+    if(data.materiel.interne)document.getElementById('mat_int').value=data.materiel.interne;
+    if(data.materiel.horametre)document.getElementById('horametre').value=data.materiel.horametre;
+  }
+  if(data.objet){document.getElementById('objet').value=data.objet;document.getElementById('ai-objet').disabled=false;}
+  if(data.travaux){document.getElementById('travaux').value=data.travaux;document.getElementById('ai-travaux').disabled=false;}
+  if(data.a_prevoir)document.getElementById('a_prevoir').value=data.a_prevoir;
+  if(data.pieces&&data.pieces.length){
+    data.pieces.forEach(p=>{
+      addPiece();
+      const rows=document.querySelectorAll('.piece-data-row');
+      const last=rows[rows.length-1];
+      if(last){
+        const ref=last.querySelector('.p-ref');if(ref)ref.value=p.ref||'';
+        const des=last.querySelector('.p-des');if(des)des.value=p.designation||'';
+        const qte=last.querySelector('.qte');if(qte)qte.value=p.qte||'';
+        const pu=last.querySelector('.pu');if(pu)pu.value=p.pu||'';
+      }
+    });calcPieces();
+  }
+  if(data.temps){
+    if(data.temps.depart)document.getElementById('h_dep').value=data.temps.depart;
+    if(data.temps.fin)document.getElementById('h_fin').value=data.temps.fin;
+    if(data.temps.km)document.getElementById('km').value=data.temps.km;
+    calcTemps();
+  }
+  if(data.remarques)document.getElementById('remarques').value=data.remarques;
+  updateProg();
+  setSaveIndicator('saved','✓ Récupéré');
+}
+
+// Surveiller les champs importants pour déclencher autosave
+setTimeout(()=>{
+  ['client','site','mat_type','mat_serie','horametre','objet','travaux','a_prevoir','remarques','km','h_dep','h_fin'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('input',()=>markDirty());
+    if(el) el.addEventListener('change',()=>markDirty());
+  });
+  document.getElementById('tech_sel')?.addEventListener('change',()=>markDirty());
+  document.getElementById('dep_fact')?.addEventListener('change',()=>markDirty());
+  // Observer les pièces dynamiques
+  const observer=new MutationObserver(()=>markDirty());
+  const pb=document.getElementById('pieces-body');
+  if(pb)observer.observe(pb,{childList:true,subtree:true,characterData:true});
+  // Vérifier autosave après init
+  setTimeout(checkAutosave, 1000);
+}, 500);
 
 updateProg();
 </script>
