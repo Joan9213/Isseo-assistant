@@ -823,31 +823,41 @@ function startVoice(fieldId,btn){
   }
   // Démarrage
   voiceActive=true;
-  recognition=new SR();
-  recognition.lang='fr-FR';
-  recognition.continuous=true;
-  recognition.interimResults=true;
+  // Récupérer le texte déjà dans le champ pour ne pas le perdre
+  let fullText=document.getElementById(fieldId).value.trim();
+  if(fullText) fullText+=' ';
+  
+  function startReco(){
+    recognition=new SR();
+    recognition.lang='fr-FR';
+    recognition.continuous=true;
+    recognition.interimResults=true;
+    recognition.onresult=e=>{
+      let interim='';
+      for(let i=e.resultIndex;i<e.results.length;i++){
+        if(e.results[i].isFinal) fullText+=e.results[i][0].transcript+' ';
+        else interim+=e.results[i][0].transcript;
+      }
+      document.getElementById(fieldId).value=(fullText+interim).trim();
+      const ai=document.getElementById('ai-'+fieldId);if(ai)ai.disabled=false;
+      chk(document.getElementById(fieldId));
+    };
+    recognition.onend=()=>{
+      if(voiceActive){
+        try{startReco();}catch(e){voiceActive=false;btn.classList.remove('recording');btn.textContent='🎤 Dicter';}
+      } else {
+        btn.classList.remove('recording');btn.textContent='🎤 Dicter';recognition=null;
+      }
+    };
+    recognition.onerror=e=>{
+      if(e.error==='no-speech'||e.error==='aborted') return;
+      voiceActive=false;btn.classList.remove('recording');btn.textContent='🎤 Dicter';recognition=null;
+      toast('⚠ Erreur micro: '+e.error,true);
+    };
+    recognition.start();
+  }
   btn.classList.add('recording');btn.textContent='⏹ Arrêter';
-  let fullText='';
-  recognition.onresult=e=>{
-    let interim='';
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      if(e.results[i].isFinal) fullText+=e.results[i][0].transcript+' ';
-      else interim+=e.results[i][0].transcript;
-    }
-    document.getElementById(fieldId).value=(fullText+interim).trim();
-    const ai=document.getElementById('ai-'+fieldId);if(ai)ai.disabled=false;
-    chk(document.getElementById(fieldId));
-  };
-  recognition.onend=()=>{
-    if(voiceActive){
-      // Pause naturelle — redémarrer
-      try{recognition.start();}catch(e){voiceActive=false;btn.classList.remove('recording');btn.textContent='🎤 Dicter';recognition=null;}
-    } else {
-      // Arrêt volontaire — ne pas redémarrer
-      btn.classList.remove('recording');btn.textContent='🎤 Dicter';recognition=null;
-    }
-  };
+  startReco();
   recognition.onerror=e=>{
     if(e.error==='no-speech') return; // Ignorer silence
     voiceActive=false;btn.classList.remove('recording');btn.textContent='🎤 Dicter';recognition=null;
@@ -910,21 +920,24 @@ async function valider(){
   const code=document.getElementById('tech-code').textContent;
   localStorage.setItem('isseo_ri_data_'+code,JSON.stringify(data));
 
-  // Envoyer au Google Sheets
+  // Envoyer au Google Sheets via GET (contourne CORS Apps Script)
   try{
-    const resp=await fetch(SHEET_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'saveRapport',data:data})
-    });
-    const result=await resp.json();
-    if(result.status==='ok'){
-      toast('✓ RI '+currentNum+' validé et enregistré dans Sheets');
-    }else{
-      toast('✓ RI validé — Sheets: '+result.message);
-    }
+    // Données essentielles uniquement pour ne pas dépasser la limite URL
+    const minimal={
+      numero:data.numero,date:data.date,technicien:data.technicien,
+      client:data.client,site:data.site,type:data.type,
+      mat_type:data.materiel?.type,mat_serie:data.materiel?.serie,
+      horametre:data.materiel?.horametre,
+      objet:data.objet,travaux:data.travaux,
+      total_ht:data.totaux?.ht,total_ttc:data.totaux?.ttc,
+      km:data.temps?.km,tps_inter:data.pointage?.tps_inter,
+      pieces:JSON.stringify(data.pieces||[])
+    };
+    const params=new URLSearchParams({action:'saveRapport',...minimal});
+    const resp=await fetch(SHEET_URL+'?'+params.toString(),{method:'GET',mode:'no-cors'});
+    toast('✓ RI '+currentNum+' validé — envoi Sheets en cours');
   }catch(e){
-    toast('✓ RI validé — enregistrement Sheets échoué');
+    toast('✓ RI validé localement');
   }
 
   const st=document.getElementById('status-txt');st.textContent='● VALIDÉ';st.classList.add('ok');
