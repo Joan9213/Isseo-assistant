@@ -1109,13 +1109,19 @@ function resetForm(){
 
 // ── IMPRESSION PDF ──
 function imprimerPDF(){
-  // Mettre à jour l'en-tête d'impression
-  const printNum=document.getElementById('print-num');
-  const printDate=document.getElementById('print-date');
-  if(printNum) printNum.textContent=currentNum||'—';
-  if(printDate) printDate.textContent=document.getElementById('date_inter')?.value||new Date().toLocaleDateString('fr-FR');
-  // Lancer l'impression
-  window.print();
+  // Récupérer les signatures
+  const data=getFormData();
+  // Ajouter signatures en base64
+  const c1=document.getElementById('c1');
+  const c2=document.getElementById('c2');
+  data.sig_client=c1?c1.toDataURL():'';
+  data.sig_isseo=c2?c2.toDataURL():'';
+  // Ajouter photos avec données
+  data.photos_data=photos.map(p=>({data:p.data,caption:p.caption}));
+  // Sauvegarder dans localStorage
+  localStorage.setItem('isseo_print_data',JSON.stringify(data));
+  // Ouvrir page d'impression
+  window.open('/print.html','_blank');
 }
 
 // ── TOAST ──
