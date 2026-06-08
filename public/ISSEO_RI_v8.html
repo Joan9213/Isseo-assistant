@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISSEO – Avis d'Intervention v8</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#EA7807;--teal:#3AB6AD;--gd:#4A4A4A;--gm:#6B6B6B;
+  --gl:#F0EFEC;--gbg:#E8E7E3;--gb:#D4D2CC;--white:#fff;
+  --mu:#999;--danger:#c0392b;--ok:#27ae60;--ai:#7C3AED;
+  --bureau:#2563EB;--tech:#0891B2;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Barlow',sans-serif;background:var(--gbg);color:var(--gd);}
+
+/* HEADER */
+.hdr{background:var(--white);border-bottom:3px solid var(--orange);padding:12px 16px 0;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;max-width:680px;margin:0 auto;}
+.logo-n{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;letter-spacing:4px;color:var(--gd);}
+.logo-n span{color:var(--orange);}
+.logo-s{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--mu);margin-top:1px;}
+.hdr-contact{text-align:right;font-size:11px;color:var(--gm);line-height:1.8;}
+.hdr-contact a{color:var(--teal);text-decoration:none;font-weight:600;}
+.num-strip{max-width:680px;margin:10px auto 0;display:flex;align-items:center;gap:10px;background:var(--gl);border-radius:6px 6px 0 0;padding:8px 12px;border:1px solid var(--gb);border-bottom:none;}
+.num-v{font-family:'Barlow Condensed',monospace;font-size:17px;font-weight:800;color:var(--orange);letter-spacing:2px;flex:1;}
+.mode-tag{font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;letter-spacing:1px;}
+.mode-tag.bureau{background:rgba(37,99,235,.1);color:var(--bureau);}
+.mode-tag.tech{background:rgba(8,145,178,.1);color:var(--tech);}
+.status-t{font-size:10px;font-weight:700;color:var(--mu);}
+.status-t.ok{color:var(--ok);}
+.prog-bar{height:3px;background:var(--gb);max-width:680px;margin:0 auto;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--orange));width:0%;transition:width .4s;}
+
+/* PRIX SWITCH */
+.top-bar{max-width:680px;margin:10px auto 0;padding:0 14px;display:flex;gap:8px;}
+.prix-inner{display:flex;background:var(--white);border-radius:8px;overflow:hidden;border:1px solid var(--gb);flex:1;}
+.px-btn{flex:1;padding:9px 4px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;color:var(--mu);background:var(--gl);border-right:1px solid var(--gb);transition:all .2s;}
+.px-btn:last-child{border-right:none;}
+.px-btn.active.show-all{background:var(--ok);color:white;}
+.px-btn.active.show-total{background:var(--orange);color:white;}
+.px-btn.active.hide-all{background:var(--gm);color:white;}
+.mode-inner{display:flex;background:var(--white);border-radius:8px;overflow:hidden;border:1px solid var(--gb);}
+.ms-btn{flex:1;padding:9px 8px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;color:var(--mu);background:var(--gl);transition:all .2s;}
+.ms-btn:first-child{border-right:1px solid var(--gb);}
+.ms-btn.active.bureau{background:var(--bureau);color:white;}
+.ms-btn.active.tech{background:var(--tech);color:white;}
+
+/* CONTAINER */
+.container{max-width:680px;margin:0 auto;padding:12px 14px 100px;}
+
+/* ODOO */
+.odoo-box{background:var(--white);border-radius:8px;border:2px dashed var(--bureau);padding:12px;margin-bottom:10px;text-align:center;}
+.odoo-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--bureau);margin-bottom:5px;}
+.btn-odoo{padding:8px 16px;border-radius:6px;border:none;background:var(--bureau);color:white;font-family:'Barlow',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+.odoo-st{display:none;align-items:center;gap:8px;padding:8px 12px;background:rgba(37,99,235,.06);border:1px solid rgba(37,99,235,.2);border-radius:6px;margin-top:8px;font-size:11px;color:var(--bureau);font-weight:600;}
+.coher-alert{padding:9px 12px;border-radius:6px;font-size:11px;font-weight:600;display:none;margin-top:8px;}
+.coher-alert.warn{background:rgba(234,120,7,.08);border:1px solid rgba(234,120,7,.3);color:var(--orange);}
+.coher-alert.ok-c{background:rgba(39,174,96,.06);border:1px solid rgba(39,174,96,.2);color:var(--ok);}
+
+/* TECH ACCESS */
+.tech-box{background:var(--white);border-radius:8px;border:2px solid var(--tech);padding:12px;margin-bottom:10px;}
+.tech-box h3{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--tech);margin-bottom:10px;}
+.code-disp{font-family:'Barlow Condensed',monospace;font-size:30px;font-weight:800;color:var(--tech);text-align:center;letter-spacing:6px;padding:12px;background:rgba(8,145,178,.05);border-radius:8px;border:2px solid rgba(8,145,178,.2);margin-bottom:8px;}
+.btn-tech{width:100%;padding:10px;border-radius:7px;border:none;background:var(--tech);color:white;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;cursor:pointer;}
+.tech-load{background:var(--white);border-radius:8px;border:2px solid var(--tech);padding:14px;margin-bottom:10px;text-align:center;}
+.tech-load h3{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--tech);margin-bottom:10px;}
+.code-wrap{display:flex;gap:8px;}
+.code-wrap input{font-family:'Barlow Condensed',monospace;font-size:22px;font-weight:800;letter-spacing:4px;text-align:center;}
+.btn-load{padding:10px 14px;border-radius:7px;border:none;background:var(--tech);color:white;font-family:'Barlow',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
+
+/* CARD */
+.card{background:var(--white);border-radius:8px;overflow:hidden;margin-bottom:10px;border:1px solid var(--gb);}
+.card-head{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--gl);border-bottom:1px solid var(--gb);cursor:pointer;user-select:none;}
+.ca{width:5px;height:20px;border-radius:3px;background:var(--orange);flex-shrink:0;}
+.ca.t{background:var(--teal);}
+.card-head h2{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--gd);flex:1;}
+.chev{font-size:10px;color:var(--mu);transition:transform .2s;}
+.closed .chev{transform:rotate(-90deg);}
+.cb{padding:13px;display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.cb.one{grid-template-columns:1fr;}
+.cb.three{grid-template-columns:1fr 1fr 1fr;}
+.cb.four{grid-template-columns:1fr 1fr 1fr 1fr;}
+
+/* FIELDS */
+.f{display:flex;flex-direction:column;gap:4px;}
+.f.full{grid-column:1/-1;}
+label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mu);}
+label .req{color:var(--orange);}
+label .conf{color:var(--teal);font-size:9px;margin-left:4px;}
+input,select,textarea{font-family:'Barlow',sans-serif;font-size:14px;font-weight:500;color:var(--gd);background:var(--gl);border:1.5px solid var(--gb);border-radius:6px;padding:8px 11px;width:100%;outline:none;appearance:none;transition:border-color .2s;}
+input:focus,select:focus,textarea:focus{border-color:var(--teal);background:white;}
+input.ok{border-color:rgba(58,182,173,.5);}
+textarea{resize:vertical;min-height:65px;}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23999' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:26px;}
+.readonly-f{background:rgba(37,99,235,.04);border-color:rgba(37,99,235,.2);}
+.conf-field input,.conf-field select{background:rgba(58,182,173,.05);border-color:rgba(58,182,173,.3);}
+
+/* AUTOCOMPLETE */
+.ac-wrap{position:relative;}
+.sugg-list{position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--teal);border-radius:0 0 8px 8px;max-height:180px;overflow-y:auto;z-index:50;display:none;box-shadow:0 4px 12px rgba(0,0,0,.1);}
+.sugg-item{padding:9px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--gl);}
+.sugg-item:hover{background:rgba(58,182,173,.08);}
+.sugg-item strong{color:var(--gd);}
+.sugg-item small{color:var(--mu);font-size:10px;display:block;}
+
+/* TYPE */
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.tbtn{padding:10px 4px;border:1.5px solid var(--gb);border-radius:7px;background:white;font-family:'Barlow',sans-serif;font-size:11px;font-weight:700;color:var(--mu);cursor:pointer;text-align:center;transition:all .2s;line-height:1.4;}
+.tbtn.sel{background:var(--orange);border-color:var(--orange);color:white;}
+.tbtn.tl.sel{background:var(--teal);border-color:var(--teal);}
+
+/* AI FIELD */
+.ai-ctrls{display:flex;gap:6px;margin-top:4px;}
+.btn-voice{display:flex;align-items:center;gap:5px;padding:7px 10px;border-radius:6px;border:1.5px solid var(--gb);background:white;color:var(--gm);font-family:'Barlow',sans-serif;font-size:11px;font-weight:700;cursor:pointer;flex:1;justify-content:center;transition:all .2s;}
+.btn-voice.recording{border-color:var(--danger);color:var(--danger);animation:prec .8s infinite;}
+@keyframes prec{0%,100%{opacity:1}50%{opacity:.5}}
+.btn-ai{display:flex;align-items:center;gap:5px;padding:7px 12px;border-radius:6px;border:none;background:var(--ai);color:white;font-family:'Barlow',sans-serif;font-size:11px;font-weight:700;cursor:pointer;flex:1;justify-content:center;}
+.btn-ai:disabled{background:var(--mu);cursor:not-allowed;}
+.spin{display:inline-block;width:11px;height:11px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:sp .7s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* PHOTOS */
+.photo-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px;border:1.5px dashed var(--gb);border-radius:8px;background:white;color:var(--gm);font-family:'Barlow',sans-serif;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:8px;}
+.ai-read{display:none;align-items:center;gap:8px;padding:8px 12px;background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.2);border-radius:6px;margin-bottom:8px;font-size:11px;color:var(--ai);font-weight:600;}
+.photos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;}
+.ph-thumb{position:relative;border-radius:8px;overflow:hidden;border:1.5px solid var(--gb);aspect-ratio:1;}
+.ph-thumb img{width:100%;height:100%;object-fit:cover;}
+.ph-del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);color:white;border:none;border-radius:50%;width:22px;height:22px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.ph-cap{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.5);padding:3px 6px;}
+.ph-cap input{background:transparent;border:none;font-size:10px;color:white;padding:0;width:100%;}
+.btn-add-ph{display:flex;align-items:center;justify-content:center;gap:6px;padding:9px;border:1.5px dashed var(--gb);border-radius:8px;background:white;color:var(--teal);font-family:'Barlow',sans-serif;font-size:11px;font-weight:700;cursor:pointer;width:100%;}
+.ph-note{font-size:10px;color:var(--mu);text-align:center;margin-top:5px;}
+
+/* HEURES — visibles client, montants masqués */
+.heures-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;padding:13px 13px 0;}
+.heures-result{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 13px 10px;margin-top:8px;}
+.h-val{background:var(--gl);border:1.5px solid var(--gb);border-radius:6px;padding:8px 10px;text-align:center;}
+.h-val .h-lbl{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mu);display:block;margin-bottom:3px;}
+.h-val .h-num{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:var(--gd);}
+.h-val.teal .h-num{color:var(--teal);}
+.conf-zone{background:rgba(58,182,173,.04);border:1px solid rgba(58,182,173,.2);border-radius:8px;padding:10px;margin:0 13px 13px;}
+.conf-zone-title{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal);margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+
+/* PIÈCES */
+.pw{padding:0 13px 13px;}
+/* Pièces en format carte mobile */
+.piece-card{background:var(--gl);border-radius:8px;padding:10px;margin-bottom:8px;border:1px solid var(--gb);position:relative;}
+.piece-card-row1{display:grid;grid-template-columns:90px 1fr;gap:8px;margin-bottom:8px;}
+.piece-card-row2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:6px;}
+.piece-card-row3{display:flex;align-items:center;justify-content:space-between;}
+.piece-card input,.piece-card select{font-size:13px;padding:8px 10px;border-radius:6px;}
+.piece-card label{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mu);display:block;margin-bottom:3px;}
+.piece-total{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:var(--orange);}
+.piece-total-lbl{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mu);display:block;}
+.prov-sel{font-size:12px;}
+.btn-del-card{position:absolute;top:8px;right:8px;background:none;border:none;color:#ccc;cursor:pointer;font-size:18px;line-height:1;}
+.btn-del-card:hover{color:var(--danger);}
+.btn-add{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:10px;border:1.5px dashed var(--gb);border-radius:8px;background:white;color:var(--teal);font-family:'Barlow',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-top:4px;}
+
+/* PRIX MASQUÉS */
+body.hide-prix .prix-col{display:none;}
+body.show-total-only .prix-col.detail{display:none;}
+
+/* TOTAUX */
+.totaux{margin:0 13px 13px;border:1px solid var(--gb);border-radius:7px;overflow:hidden;}
+.tot-row{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--gb);}
+.tot-row:last-child{border:none;background:var(--gd);}
+.tot-lbl{font-weight:600;color:var(--mu);font-size:11px;}
+.tot-row:last-child .tot-lbl{color:rgba(255,255,255,.6);font-size:11px;letter-spacing:.5px;text-transform:uppercase;}
+.tot-val{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--gd);}
+.tot-row:last-child .tot-val{color:var(--orange);font-size:21px;}
+body.hide-prix .tot-row:not(:last-child){display:none;}
+body.show-total-only .tot-row.detail-r{display:none;}
+
+/* SIG */
+.sig-sec{padding:13px;}
+.sig-notice{font-size:11px;color:var(--gm);line-height:1.65;margin-bottom:12px;padding:10px 12px;background:var(--gl);border-radius:6px;border-left:3px solid var(--orange);font-style:italic;}
+.sig-names{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.sig-box{border:1.5px solid var(--gb);border-radius:7px;overflow:hidden;}
+.sig-hd{background:var(--gl);padding:7px 10px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mu);display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--gb);}
+canvas{display:block;width:100%;height:85px;cursor:crosshair;touch-action:none;background:white;}
+.sig-clr{font-size:10px;color:var(--teal);cursor:pointer;font-weight:700;border:none;background:none;}
+
+.doc-footer{margin:0 13px 13px;padding:9px 13px;border-top:2px solid var(--orange);text-align:center;font-size:10px;color:var(--mu);line-height:1.8;}
+.doc-footer strong{color:var(--gd);}
+
+/* ACTIONS */
+.actions{position:fixed;bottom:0;left:0;right:0;background:white;border-top:2px solid var(--gb);padding:10px 14px;display:flex;gap:8px;z-index:200;box-shadow:0 -3px 12px rgba(0,0,0,.07);}
+.btn-r{flex:0 0 auto;padding:11px 12px;border-radius:7px;border:1.5px solid var(--gb);background:white;color:var(--mu);font-family:'Barlow',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+.btn-e{flex:0 0 auto;padding:11px 12px;border-radius:7px;border:1.5px solid var(--teal);background:white;color:var(--teal);font-family:'Barlow',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+.btn-v{flex:1;padding:11px;border-radius:7px;border:none;background:var(--orange);color:white;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:3px;text-transform:uppercase;cursor:pointer;}
+
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-8px);background:var(--gd);color:white;padding:10px 22px;border-radius:20px;font-size:12px;font-weight:700;opacity:0;transition:all .3s;z-index:999;white-space:nowrap;border-left:3px solid var(--teal);pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@media(max-width:480px){
+  .cb{grid-template-columns:1fr;}
+  .cb.three,.cb.four{grid-template-columns:1fr 1fr;}
+  .type-grid{grid-template-columns:repeat(2,1fr);}
+  .sig-grid,.sig-names{grid-template-columns:1fr;}
+  .hdr-top{flex-direction:column;align-items:flex-start;gap:4px;}
+
+  .photos-grid{grid-template-columns:repeat(2,1fr);}
+  .heures-grid{grid-template-columns:1fr 1fr;}
+  .heures-result{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-top">
+    <div>
+      <div class="logo-n">ISS<span>É</span>O</div>
+      <div class="logo-s">Chariots Élévateurs · Vente Location Maintenance</div>
+    </div>
+    <div class="hdr-contact">
+      📞 <a href="tel:0607086958">06 07 08 69 58</a> · <a href="tel:0442067014">04 42 06 70 14</a><br>
+      ✉ <a href="mailto:contact@isseochariot.fr">contact@isseochariot.fr</a>
+    </div>
+  </div>
+  <div class="num-strip">
+    <span style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mu)">Avis N°</span>
+    <span class="num-v" id="num-display">RI-2026-????</span>
+    <span class="mode-tag bureau" id="mode-tag">🖥 BUREAU</span>
+    <span class="status-t" id="status-txt">● BROUILLON</span>
+  </div>
+  <div class="prog-bar"><div class="prog-fill" id="prog"></div></div>
+</div>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="prix-inner">
+    <div class="px-btn active show-all" onclick="setPrix('show-all')">✅ Prix complets</div>
+    <div class="px-btn show-total" onclick="setPrix('show-total')">💰 Total seul</div>
+    <div class="px-btn hide-all" onclick="setPrix('hide-all')">🔒 Sans prix</div>
+  </div>
+  <div class="mode-inner">
+    <div class="ms-btn active bureau" onclick="setMode('bureau')">🖥 Bureau</div>
+    <div class="ms-btn tech" onclick="setMode('tech')">📱 Tech</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- IMPORT ODOO -->
+  <div class="odoo-box" id="odoo-zone">
+    <div class="odoo-title">📄 Importer un devis Odoo</div>
+    <button class="btn-odoo" onclick="document.getElementById('odoo-pdf').click()">Choisir le PDF</button>
+    <input type="file" id="odoo-pdf" accept="application/pdf" style="display:none" onchange="importerOdoo(this)">
+    <div class="odoo-st" id="odoo-st"><div class="spin" style="border-color:rgba(37,99,235,.3);border-top-color:var(--bureau)"></div><span id="odoo-st-txt">Lecture…</span></div>
+    <div class="coher-alert" id="coher-alert"></div>
+  </div>
+
+  <!-- CODE TECH (bureau) -->
+  <div class="tech-box" id="tech-box">
+    <h3>📱 Code d'accès Technicien</h3>
+    <div class="code-disp" id="tech-code">??????</div>
+    <button class="btn-tech" onclick="envoyerCode()">📤 Envoyer par WhatsApp</button>
+  </div>
+
+  <!-- CHARGEMENT RI (tech) -->
+  <div class="tech-load" id="tech-load" style="display:none">
+    <h3>Récupérer un RI</h3>
+    <div class="code-wrap">
+      <input type="text" id="code-ri" placeholder="CODE" maxlength="6" style="text-transform:uppercase">
+      <button class="btn-load" onclick="chargerRI()">Charger</button>
+    </div>
+  </div>
+
+  <!-- 1. IDENTIFICATION -->
+  <div class="card">
+    <div class="card-head" onclick="tog(this)"><div class="ca"></div><h2>1 — Identification</h2><span class="chev">▼</span></div>
+    <div class="cb">
+      <div class="f"><label>Date <span class="req">*</span></label><input type="date" id="date_inter" oninput="chk(this)"></div>
+      <div class="f"><label>Technicien <span class="req">*</span></label>
+        <select id="tech_sel" onchange="chk(this)">
+          <option value="">— Choisir —</option>
+          <option>Florent</option><option>Cédric</option><option>Myriam</option><option>Joan</option>
+        </select>
+      </div>
+      <div class="f full">
+        <label>Client <span class="req">*</span></label>
+        <div class="ac-wrap">
+          <input type="text" id="client" placeholder="Tapez le nom du client…" oninput="searchClient(this.value)" onblur="hideSugg()" autocomplete="off">
+          <div class="sugg-list" id="client-sugg"></div>
+        </div>
+      </div>
+      <div class="f full"><label>Site d'intervention</label><input type="text" id="site" placeholder="Adresse ou nom de site" oninput="chk(this)"></div>
+      <div class="f"><label>N° commande client</label><input type="text" id="cmd_client" placeholder="Si applicable" oninput="chk(this)"></div>
+      <div class="f"><label>N° contrat</label><input type="text" id="num_contrat" placeholder="CONT-2026-XXX" oninput="chk(this)"></div>
+    </div>
+  </div>
+
+  <!-- 2. TYPE -->
+  <div class="card">
+    <div class="card-head" onclick="tog(this)"><div class="ca"></div><h2>2 — Type d'Intervention <span class="req">*</span></h2><span class="chev">▼</span></div>
+    <div class="cb one">
+      <div class="type-grid">
+        <button class="tbtn" onclick="selType(this)">Dépannage</button>
+        <button class="tbtn" onclick="selType(this)">Entretien</button>
+        <button class="tbtn" onclick="selType(this)">Contrat</button>
+        <button class="tbtn tl" onclick="selType(this)">VGP</button>
+        <button class="tbtn tl" onclick="selType(this)">Garantie</button>
+        <button class="tbtn tl" onclick="selType(this)">Location</button>
+        <button class="tbtn" onclick="selType(this)" style="grid-column:span 2">Full Service</button>
+        <button class="tbtn" onclick="selType(this)">Non facturable</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. MATÉRIEL -->
+  <div class="card">
+    <div class="card-head" onclick="tog(this)"><div class="ca t"></div><h2>3 — Matériel</h2><span class="chev">▼</span></div>
+    <div class="cb one" style="padding-bottom:6px">
+      <button class="photo-btn" onclick="document.getElementById('plaque-input').click()">📷 Scanner la plaque → remplissage auto</button>
+      <input type="file" id="plaque-input" accept="image/*" capture="environment" style="display:none" onchange="analyserPlaque(this)">
+      <div class="ai-read" id="ai-reading"><div class="spin"></div> Lecture plaque…</div>
+      <div class="f">
+        <label>Sélectionner depuis le parc</label>
+        <select id="machine-sel" onchange="selMachine(this)">
+          <option value="">— Choisir une machine —</option>
+        </select>
+      </div>
+    </div>
+    <div class="cb">
+      <div class="f"><label>Type / Modèle <span class="req">*</span></label><input type="text" id="mat_type" placeholder="Ex : Hangcha XC35" oninput="chk(this)"></div>
+      <div class="f"><label>N° de Série <span class="req">*</span></label><input type="text" id="mat_serie" placeholder="XXXXXXXXXX" oninput="chk(this)"></div>
+      <div class="f"><label>N° Parc / Interne</label><input type="text" id="mat_int" placeholder="Ex : G5183" oninput="chk(this)"></div>
+      <div class="f"><label>Horamètre (h)</label><input type="number" id="horametre" placeholder="Ex : 1250" min="0" oninput="chk(this)"></div>
+    </div>
+  </div>
+
+  <!-- 4. DIAGNOSTIC & TRAVAUX -->
+  <div class="card">
+    <div class="card-head" onclick="tog(this)"><div class="ca"></div><h2>4 — Diagnostic & Travaux</h2><span class="chev">▼</span></div>
+    <div class="cb one">
+      <div class="f">
+        <label>Objet / Diagnostic <span class="req">*</span></label>
+        <textarea id="objet" placeholder="Tapez ou dictez le problème…" oninput="chk(this)"></textarea>
+        <div class="ai-ctrls">
+          <button class="btn-voice" id="voice-objet" onclick="startVoice('objet',this)">🎤 Dicter</button>
+          <button class="btn-ai" id="ai-objet" onclick="reformulerIA('objet')" disabled>✨ Reformuler</button>
+        </div>
+      </div>
+      <div class="f" style="margin-top:6px">
+        <label>Travaux réalisés <span class="req">*</span></label>
+        <textarea id="travaux" placeholder="Tapez ou dictez les travaux…" oninput="chk(this)"></textarea>
+        <div class="ai-ctrls">
+          <button class="btn-voice" id="voice-travaux" onclick="startVoice('travaux',this)">🎤 Dicter</button>
+          <button class="btn-ai" id="ai-travaux" onclick="reformulerIA('travaux')" disabled>✨ Reformuler</button>
+        </div>
+      </div>
+      <div class="f" style="margin-top:6px">
+        <label>Travaux à prévoir</label>
+        <textarea id="a_prevoir" placeholder="Interventions futures recommandées…" style="min-height:50px" oninput="chk(this)"></textarea>
+        <div class="ai-ctrls">
+          <button class="btn-voice" id="voice-prevoir" onclick="startVoice('a_prevoir',this)">🎤 Dicter</button>
+          <button class="btn-ai" id="ai-prevoir" onclick="reformulerIA('a_prevoir')" disabled>✨ Reformuler</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. PHOTOS -->
+  <div class="card">
+    <div class="card-head" onclick="tog(this)"><div class="ca t"></div><h2>5 — Photos Pièces Défectueuses</h2><span class="chev">▼</span></div>
+    <div style="padding:0 13px 13px">
+      <div class="photos-grid" id="photos-grid"></div>
+      <button class="btn-add-ph" id="btn-add-ph" onclick="document.getElementById('photo-def').click()">📷 Ajouter une photo</button>
+      <input type="file" id="photo-def" accept="image/*" capture="environment" style="display:none" onchange="ajouterPhoto(this)">
+      <div class="ph-note" id="ph-note">0 / 5 photos · Compression auto</div>
+    </div>
+  </div>
+
+  <!-- 6. PIÈCES -->
+  <div class="card">
+    <div class="card-head" onclick="tog(this)"><div class="ca t"></div><h2>6 — Fournitures & Pièces</h2><span class="chev">▼</span></div>
+    <div class="pw" style="padding-top:10px">
+      <div id="pieces-body"></div>
+      <button class="btn-add" onclick="addPiece()">+ Ajouter une pièce</button>
+    </div>
+  </div>
+
+  <!-- 7. HEURES & DÉPLACEMENT — visible client, montants masqués -->
+  <div class="card">
+    <div class="card-head" onclick="tog(this)"><div class="ca"></div><h2>7 — Temps & Déplacement</h2><span class="chev">▼</span></div>
+
+    <!-- Heures — visibles client -->
+    <div class="heures-grid">
+      <div class="f"><label>Départ dépôt</label><input type="time" id="h_dep" oninput="calcTemps()"></div>
+      <div class="f"><label>Arrivée client</label><input type="time" id="h_arr" oninput="calcTemps()"></div>
+      <div class="f"><label>Fin intervention</label><input type="time" id="h_fin" oninput="calcTemps()"></div>
+      <div class="f"><label>Km parcourus</label><input type="number" id="km" placeholder="Ex : 47" min="0" oninput="chk(this)"></div>
+    </div>
+    <div class="heures-result">
+      <div class="h-val"><span class="h-lbl">Tps route</span><span class="h-num" id="disp-route">—</span></div>
+      <div class="h-val teal"><span class="h-lbl">Tps intervention</span><span class="h-num" id="disp-inter">—</span></div>
+      <div class="h-val"><span class="h-lbl">Déplacement</span><span class="h-num" id="disp-dep">—</span></div>
+    </div>
+
+    <!-- Zone confidentielle — montants masqués -->
+    <div class="conf-zone">
+      <div class="conf-zone-title">🔒 Données confidentielles — non visibles client</div>
+      <div class="cb three" style="padding:0">
+        <div class="f conf-field"><label>Taux MO €/h <span class="conf">CONFID.</span></label><input type="number" id="taux_mo" value="75" min="0" oninput="calcTotaux()"></div>
+        <div class="f conf-field"><label>Forfait dépl. €</label><input type="number" id="forfait_dep" value="120" min="0" oninput="calcTotaux()"></div>
+        <div class="f conf-field"><label>Dépl. facturé</label><select id="dep_fact" onchange="calcTotaux()"><option value="1">Oui</option><option value="0">Non</option></select></div>
+      </div>
+    </div>
+
+    <!-- Totaux -->
+    <div class="totaux">
+      <div class="tot-row detail-r"><span class="tot-lbl">Pièces HT</span><span class="tot-val prix-col detail" id="t-p">0,00 €</span></div>
+      <div class="tot-row detail-r"><span class="tot-lbl">Main d'œuvre HT</span><span class="tot-val prix-col detail" id="t-mo">0,00 €</span></div>
+      <div class="tot-row detail-r"><span class="tot-lbl">Déplacement HT</span><span class="tot-val prix-col detail" id="t-d">0,00 €</span></div>
+      <div class="tot-row detail-r"><span class="tot-lbl">Total HT</span><span class="tot-val prix-col detail" id="t-ht">0,00 €</span></div>
+      <div class="tot-row detail-r"><span class="tot-lbl">TVA 20%</span><span class="tot-val prix-col detail" id="t-tva">0,00 €</span></div>
+      <div class="tot-row"><span class="tot-lbl">Total TTC</span><span class="tot-val" id="t-ttc">0,00 €</span></div>
+    </div>
+
+    <!-- Remarques -->
+    <div class="cb one" style="padding-top:0">
+      <div class="f"><label>Remarques</label><textarea id="remarques" placeholder="Observations, conditions particulières…" oninput="chk(this)"></textarea></div>
+    </div>
+  </div>
+
+  <!-- 8. SIGNATURE -->
+  <div class="card">
+    <div class="card-head" onclick="tog(this)"><div class="ca t"></div><h2>8 — Validation & Signatures</h2><span class="chev">▼</span></div>
+    <div class="sig-sec">
+      <div class="sig-notice">Les travaux ont été exécutés conformément à la demande du client, qui confirme leur bonne exécution. Par sa signature, le client accepte sans réserve les conditions générales d'intervention ISSEO figurant au dos du présent document.</div>
+      <div class="sig-names">
+        <div class="f"><label>Nom signataire client</label><input type="text" id="sig_nom" placeholder="Prénom NOM" oninput="chk(this)"></div>
+        <div class="f"><label>Fonction</label><input type="text" id="sig_fn" placeholder="Ex : Chef d'entrepôt" oninput="chk(this)"></div>
+      </div>
+      <div class="sig-grid">
+        <div class="sig-box"><div class="sig-hd"><span>Signature Client</span><button class="sig-clr" onclick="clearSig('c1')">Effacer</button></div><canvas id="c1"></canvas></div>
+        <div class="sig-box"><div class="sig-hd"><span>Responsable ISSEO</span><button class="sig-clr" onclick="clearSig('c2')">Effacer</button></div><canvas id="c2"></canvas></div>
+      </div>
+    </div>
+    <div class="doc-footer">
+      <strong>ISSEO CHARIOTS ÉLÉVATEURS</strong> – SASU 3 000 € – SIRET 911 977 809 00019 – APE 3312Z – TVA FR36 911 977 809<br>
+      20 Allée Marie Curie – ZA Lavalduc – 13270 Fos-sur-Mer | 37d chemin de Margaillan – 13200 Arles<br>
+      📞 06 07 08 69 58 · 04 42 06 70 14 | ✉ contact@isseochariot.fr
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<div class="actions">
+  <button class="btn-r" onclick="resetForm()">↺</button>
+  <button class="btn-e" onclick="exportJSON()">⬇</button>
+  <button class="btn-v" onclick="valider()">VALIDER</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SHEET_URL='https://script.google.com/macros/s/AKfycbymtJDfI6b4LW2ZYWWcQQbikFLeYk0C_gYcPDnfuJ_meKxVP_OFm7GxJg18CR_6cXyz/exec';
+
+// ── DONNÉES V9 (base locale fallback) ──
+const DB_CLIENTS=[{"id": 601, "code": 92800, "nom": "CSP PARIS FASHION", "mo": 56.92, "depl": 119.2}, {"id": 602, "code": 3840, "nom": "ADF MAINTENANCE INDUSTRIELLE", "mo": 62.0, "depl": 79.74}, {"id": 604, "code": 600, "nom": "AGEI", "mo": 62.0, "depl": 79.74}, {"id": 606, "code": 28200, "nom": "AGRI SERVICE SUD EST", "mo": 62.0, "depl": 79.74}, {"id": 608, "code": 1000, "nom": "AIR LITTORAL INDUSTRIE", "mo": 62.0, "depl": 204.45}, {"id": 611, "code": 2800, "nom": "AQUALUX", "mo": 62.0, "depl": 79.74}, {"id": 612, "code": 3520, "nom": "ARGEL SUD EST CAISSARGUE", "mo": 62.0, "depl": 79.74}, {"id": 613, "code": 3550, "nom": "ARLES AUTOMOBILES SERVICES", "mo": 53.16, "depl": 79.74}, {"id": 614, "code": 3600, "nom": "ARLES DIFFUSION PRESSES SA", "mo": 53.16, "depl": 83.33}, {"id": 615, "code": 3650, "nom": "ARLEX", "mo": 50.26, "depl": 83.77}, {"id": 617, "code": 3730, "nom": "ASAHI THERMOFIL SA", "mo": 48.18, "depl": 80.82}, {"id": 618, "code": 95200, "nom": "ASCOMETAL", "mo": 47.89, "depl": 79.74}, {"id": 619, "code": 3750, "nom": "ATAC", "mo": 53.16, "depl": 79.74}, {"id": 620, "code": 900, "nom": "AIR ASSISTANCE", "mo": 62.0, "depl": 79.74}, {"id": 621, "code": 45000, "nom": "HYDRO SUD", "mo": 51.45, "depl": 77.17}, {"id": 622, "code": 10700, "nom": "BORDET", "mo": 53.16, "depl": 79.74}, {"id": 623, "code": 15520, "nom": "CAT LES ABEILLES", "mo": 53.16, "depl": 0.0}, {"id": 624, "code": 17000, "nom": "CENTRE DE FORMATION", "mo": 53.16, "depl": 79.74}, {"id": 625, "code": 18100, "nom": "CHRONOPOST", "mo": 53.16, "depl": 79.74}, {"id": 626, "code": 21950, "nom": "CONSERVERIE MARTIN", "mo": 53.16, "depl": 79.74}, {"id": 627, "code": 22000, "nom": "COOP AGRI PAYSANS DU TERROIR", "mo": 53.16, "depl": 79.74}, {"id": 628, "code": 23520, "nom": "COOP PRIMEURS DE LA CRAU", "mo": 53.16, "depl": 83.33}, {"id": 629, "code": 24100, "nom": "LES VERGERS DE LA VALLEE DES BAUX", "mo": 51.23, "depl": 74.91}, {"id": 630, "code": 1700, "nom": "ALTEA", "mo": 62.0, "depl": 79.74}, {"id": 631, "code": 24500, "nom": "CORBANINI ETS", "mo": 53.16, "depl": 79.74}, {"id": 632, "code": 25000, "nom": "DALKIA", "mo": 51.61, "depl": 53.16}, {"id": 633, "code": 26450, "nom": "DELERUE SA/DROUAULT", "mo": 53.16, "depl": 83.33}, {"id": 634, "code": 26610, "nom": "DELTA RECYCLAGE", "mo": 53.16, "depl": 0.0}, {"id": 635, "code": 26600, "nom": "DELTA DIFFUSION", "mo": 53.16, "depl": 83.33}, {"id": 636, "code": 32430, "nom": "ELIT", "mo": 53.16, "depl": 79.74}, {"id": 637, "code": 33480, "nom": "EUROPE AIRPOST", "mo": 65.0, "depl": 61.27}, {"id": 638, "code": 37200, "nom": "G & C FORMATION", "mo": 53.16, "depl": 0.0}, {"id": 639, "code": 39580, "nom": "GEDIMAT SAINT PAULIENNE", "mo": 48.0, "depl": 111.0}, {"id": 641, "code": 57002, "nom": "GETIM BASE HS", "mo": 51.52, "depl": 0.0}, {"id": 642, "code": 40600, "nom": "GLITSCH FRANCE SA", "mo": 49.0, "depl": 77.17}, {"id": 643, "code": 39800, "nom": "GENERALE DE SERVICES AERONAUTIQUES", "mo": 46.65, "depl": 47.0}, {"id": 644, "code": 39600, "nom": "GEFPLAST", "mo": 53.16, "depl": 83.33}, {"id": 645, "code": 33650, "nom": "FARGIER EURL", "mo": 48.18, "depl": 80.82}, {"id": 646, "code": 35740, "nom": "FRANCE HANDLING", "mo": 53.16, "depl": 79.56}, {"id": 647, "code": 36000, "nom": "FRANCE RIZ SICA", "mo": 53.16, "depl": 79.74}, {"id": 648, "code": 43500, "nom": "HARMONIA MUNDI", "mo": 51.45, "depl": 77.17}, {"id": 650, "code": 47950, "nom": "INTERMARCHE FOURCHON", "mo": 55.36, "depl": 0.0}, {"id": 651, "code": 47870, "nom": "INTERNATIONAL EXPORT AGENCY", "mo": 49.83, "depl": 0.0}, {"id": 652, "code": 51500, "nom": "KIABI LOGISTIQUE", "mo": 44.0, "depl": 77.17}, {"id": 653, "code": 51400, "nom": "KHALIFA AIRWAYS", "mo": 51.45, "depl": 77.17}, {"id": 654, "code": 58200, "nom": "LES ATELIERS DE PROVENCE", "mo": 53.16, "depl": 77.0}, {"id": 655, "code": 58350, "nom": "LES CHAUX DE PROVENCE", "mo": 51.54, "depl": 77.31}, {"id": 656, "code": 58000, "nom": "LE KRYSTAL", "mo": 51.45, "depl": 47.0}, {"id": 657, "code": 57710, "nom": "LE JARDINIER ST REMOIS", "mo": 46.65, "depl": 47.0}, {"id": 658, "code": 64700, "nom": "MONSIEUR BRICOLAGE", "mo": 51.83, "depl": 80.99}, {"id": 659, "code": 62200, "nom": "MAISON CENTRALE D'ARLES", "mo": 51.45, "depl": 77.17}, {"id": 662, "code": 70200, "nom": "NEWTECH FRANCE", "mo": 51.45, "depl": 77.17}, {"id": 663, "code": 70600, "nom": "NITRO BICK FORD", "mo": 45.0, "depl": 111.0}, {"id": 664, "code": 70800, "nom": "EPC", "mo": 70.0, "depl": 0.0}, {"id": 665, "code": 71210, "nom": "OBI", "mo": 51.45, "depl": 77.17}, {"id": 666, "code": 71450, "nom": "OLIVES ARNAUD", "mo": 51.45, "depl": 47.0}, {"id": 667, "code": 71500, "nom": "OMYA SA", "mo": 51.45, "depl": 77.17}, {"id": 668, "code": 71205, "nom": "OBI ISTRES", "mo": 51.45, "depl": 77.17}, {"id": 669, "code": 85200, "nom": "PERRETS ETS SA", "mo": 53.16, "depl": 83.33}, {"id": 670, "code": 88720, "nom": "PETITE ARGENCE STE", "mo": 48.0, "depl": 77.17}, {"id": 671, "code": 74000, "nom": "PEYRONNET SA", "mo": 45.0, "depl": 77.17}, {"id": 672, "code": 78000, "nom": "PROVENCE DAUPHINE", "mo": 39.64, "depl": 0.0}, {"id": 673, "code": 78400, "nom": "PROVENCE PRIMEURS", "mo": 37.32, "depl": 77.17}, {"id": 675, "code": 80600, "nom": "REGE PLASTIQUES SA", "mo": 51.45, "depl": 45.0}, {"id": 676, "code": 82450, "nom": "ROBINEAU", "mo": 51.45, "depl": 77.17}, {"id": 677, "code": 87700, "nom": "RICHEL - SERRES DE FRANCE", "mo": 42.92, "depl": 71.04}, {"id": 678, "code": 85800, "nom": "SCA LA DURANCOLE", "mo": 51.45, "depl": 77.17}, {"id": 679, "code": 86050, "nom": "SCEA DU PONT DU CANAL", "mo": 51.45, "depl": 77.17}, {"id": 680, "code": 85250, "nom": "SAF DISTRIBUTION", "mo": 51.45, "depl": 0.0}, {"id": 681, "code": 86150, "nom": "SCOFEL", "mo": 46.55, "depl": 78.0}, {"id": 682, "code": 86700, "nom": "SECOMOC", "mo": 51.45, "depl": 46.3}, {"id": 684, "code": 90500, "nom": "SOVAM SA", "mo": 49.95, "depl": 79.74}, {"id": 685, "code": 92600, "nom": "TECHNIC'EAU", "mo": 48.36, "depl": 77.17}, {"id": 686, "code": 94440, "nom": "TRANSPORT CESARI", "mo": 51.45, "depl": 77.17}, {"id": 687, "code": 1175, "nom": "COVED", "mo": 48.51, "depl": 80.33}, {"id": 689, "code": 14900, "nom": "CABUS RAULOT (St Paul Trois Châteaux)", "mo": 53.16, "depl": 0.0}, {"id": 690, "code": 57300, "nom": "LE COIN DU PNEU", "mo": 51.45, "depl": 47.0}, {"id": 691, "code": 28300, "nom": "DISTILLERIE FINE DOC", "mo": 53.16, "depl": 79.74}, {"id": 693, "code": 87950, "nom": "SICA OLEICOLE DE LA VALLEE DES BAUX", "mo": 51.45, "depl": 47.0}, {"id": 694, "code": 95460, "nom": "VAFFIER RENAUD", "mo": 51.45, "depl": 77.17}, {"id": 695, "code": 40800, "nom": "GRAND BEAUMONT SARL", "mo": 51.45, "depl": 77.17}, {"id": 696, "code": 52300, "nom": "LA THOMINIERE", "mo": 51.45, "depl": 77.17}, {"id": 697, "code": 26425, "nom": "DEL ARLES", "mo": 53.16, "depl": 79.74}, {"id": 698, "code": 70050, "nom": "NEMCO", "mo": 51.45, "depl": 77.17}, {"id": 699, "code": 21820, "nom": "COMPAGNIE DES SALINS DU MIDI CSME", "mo": 53.16, "depl": 79.74}, {"id": 700, "code": 39750, "nom": "TRACKAIR", "mo": 40.8, "depl": 114.21}, {"id": 701, "code": 16700, "nom": "CENTRE D'ESSAIS EN VOL - DGA", "mo": 53.16, "depl": 79.74}, {"id": 702, "code": 39450, "nom": "GEANT CASINO ISTRES", "mo": 51.45, "depl": 48.36}, {"id": 703, "code": 95470, "nom": "LES VERGERS DU MAS PERROT", "mo": 53.16, "depl": 74.91}, {"id": 704, "code": 88190, "nom": "SNCF AVIGNON", "mo": 50.63, "depl": 87.72}, {"id": 705, "code": 24850, "nom": "CREDIT AGRICOLE DES BDR", "mo": 47.89, "depl": 83.33}, {"id": 706, "code": 92100, "nom": "SUD CEREALE - SILOS DES GRANGES", "mo": 51.45, "depl": 77.17}, {"id": 707, "code": 8850, "nom": "BERTELLO ETIENNE", "mo": 53.16, "depl": 79.74}, {"id": 708, "code": 3525, "nom": "ARGEL SUD EST NIMES", "mo": 62.0, "depl": 79.74}, {"id": 709, "code": 4025, "nom": "AUBEL APICULTEUR", "mo": 53.16, "depl": 0.0}, {"id": 714, "code": 15320, "nom": "C2I", "mo": 53.16, "depl": 0.0}, {"id": 716, "code": 59000, "nom": "FORCLUM (ex LINELEC)", "mo": 53.16, "depl": 130.0}, {"id": 718, "code": 63500, "nom": "M C G M", "mo": 51.45, "depl": 47.0}, {"id": 719, "code": 71450, "nom": "OLIVES ARNAUD", "mo": 51.45, "depl": 0.0}, {"id": 722, "code": 9100, "nom": "BERTON SICARD", "mo": 53.16, "depl": 79.74}, {"id": 723, "code": 17520, "nom": "CHABAS", "mo": 53.16, "depl": 79.74}, {"id": 724, "code": 88710, "nom": "SOCIETE GENERALE DES LIANTS", "mo": 51.45, "depl": 77.17}, {"id": 725, "code": 17300, "nom": "CENTRE HOSPITALIER DE MARTIGUES", "mo": 53.16, "depl": 48.36}, {"id": 726, "code": 92950, "nom": "THOMAS", "mo": 51.45, "depl": 77.17}, {"id": 727, "code": 85200, "nom": "PERRETS PUY STE REPARADE", "mo": 51.45, "depl": 114.21}, {"id": 728, "code": 14900, "nom": "CABUS ET RAULOT (Port de Bouc)", "mo": 53.16, "depl": 0.0}, {"id": 729, "code": 33500, "nom": "FAISSE ET PLATA", "mo": 53.16, "depl": 79.74}, {"id": 730, "code": 87780, "nom": "SIAREP", "mo": 51.45, "depl": 77.17}, {"id": 732, "code": 54000, "nom": "LA PROVENCALE DES LOISIRS", "mo": 51.45, "depl": 77.17}, {"id": 733, "code": 26680, "nom": "DEMENAGEMENTS CHEVALLIER", "mo": 53.16, "depl": 79.74}, {"id": 734, "code": 400, "nom": "ACTAIR", "mo": 62.0, "depl": 80.82}, {"id": 735, "code": 3870, "nom": "ATLET", "mo": 56.92, "depl": 119.2}, {"id": 736, "code": 34980, "nom": "FOUQUE ETS", "mo": 47.89, "depl": 83.33}, {"id": 737, "code": 92550, "nom": "JOHN COCKERILL", "mo": 49.28, "depl": 0.0}, {"id": 738, "code": 17100, "nom": "CETEVIM SUD", "mo": 53.16, "depl": 0.0}, {"id": 739, "code": 86005, "nom": "SCARDIGLI", "mo": 51.45, "depl": 46.3}, {"id": 741, "code": 3515, "nom": "ARGEL SUD EST PLAN D'ORGON", "mo": 62.0, "depl": 87.52}, {"id": 742, "code": 17280, "nom": "CENTRE HOSPITALIER D'ARLES", "mo": 49.28, "depl": 79.74}, {"id": 743, "code": 53700, "nom": "NOUVELLES GLACIERES D'ARLES", "mo": 51.45, "depl": 77.17}, {"id": 744, "code": 15565, "nom": "CASASERVICES", "mo": 53.16, "depl": 79.74}, {"id": 745, "code": 29850, "nom": "DOMINICI", "mo": 53.16, "depl": 79.74}, {"id": 747, "code": 92200, "nom": "SUPER U", "mo": 51.45, "depl": 77.17}, {"id": 748, "code": 91600, "nom": "STACI VITROLLES", "mo": 45.08, "depl": 62.49}, {"id": 750, "code": 85600, "nom": "SAT", "mo": 49.76, "depl": 77.17}, {"id": 752, "code": 62100, "nom": "M2M", "mo": 49.39, "depl": 48.36}, {"id": 753, "code": 5000, "nom": "BADOUIX", "mo": 49.33, "depl": 83.51}, {"id": 754, "code": 25550, "nom": "DASSAULT AVIATION", "mo": 51.61, "depl": 53.16}, {"id": 755, "code": 47955, "nom": "INTERMARCHE TRINQUETAILLE", "mo": 55.36, "depl": 0.0}, {"id": 756, "code": 0, "nom": "LE MOULIN COOPERATIF OLEICOLE", "mo": 51.45, "depl": 77.17}, {"id": 757, "code": 32200, "nom": "EIFFAGE METAL", "mo": 61.8, "depl": 0.0}, {"id": 758, "code": 77960, "nom": "PROSERTEC", "mo": 53.59, "depl": 0.0}, {"id": 759, "code": 18300, "nom": "CICL", "mo": 53.16, "depl": 83.33}, {"id": 761, "code": 91900, "nom": "T2C", "mo": 49.28, "depl": 48.36}, {"id": 762, "code": 62550, "nom": "MANULOC", "mo": 35.0, "depl": 33.0}, {"id": 763, "code": 62550, "nom": "CARREFOUR AIX LES MILLES - MANULOC", "mo": 53.16, "depl": 79.74}, {"id": 765, "code": 78290, "nom": "PROVENCE MANUTENTION", "mo": 47.0, "depl": 35.5}, {"id": 766, "code": 0, "nom": "ISOTHERMA", "mo": 50.0, "depl": 0.0}, {"id": 767, "code": 94475, "nom": "TRAQUINI JOSE T.P", "mo": 53.16, "depl": 0.0}, {"id": 768, "code": 4300, "nom": "AVIAPARTNER", "mo": 53.16, "depl": 0.0}, {"id": 769, "code": 62550, "nom": "CARREFOUR PORT DE BOUC - MANULOC", "mo": 53.16, "depl": 0.0}, {"id": 771, "code": 5950, "nom": " BASE AERIENNE 125 ISTRES ARMEE DE L'AIR", "mo": 62.0, "depl": 47.84}, {"id": 772, "code": 62550, "nom": "CARREFOUR CHATEAUNEUF LES MARTIGUES MANULOC", "mo": 53.16, "depl": 79.74}, {"id": 774, "code": 40700, "nom": "GLOBE GROUND", "mo": 51.45, "depl": 77.17}, {"id": 775, "code": 500, "nom": "AFSA", "mo": 62.0, "depl": 79.74}, {"id": 776, "code": 23250, "nom": "COOPERATIVE DE FONTVIEILLE", "mo": 51.23, "depl": 74.91}, {"id": 777, "code": 76440, "nom": "CENTRE D'INTERVENTION POLMAR", "mo": 49.28, "depl": 0.0}, {"id": 779, "code": 0, "nom": "CCI PORT DE COMMERCE D'AJACCIO", "mo": 53.16, "depl": 0.0}, {"id": 780, "code": 950, "nom": "AIR LIQUIDE", "mo": 62.0, "depl": 52.68}, {"id": 781, "code": 0, "nom": "DAHER LHOTELIER SERVICES", "mo": 51.67, "depl": 51.76}, {"id": 782, "code": 73700, "nom": "PEUGEOT ARLES ROUX SA", "mo": 53.16, "depl": 83.33}, {"id": 783, "code": 4100, "nom": "AUXILLIAIRE MARITIME", "mo": 49.28, "depl": 0.0}, {"id": 784, "code": 62550, "nom": "CARREFOUR LA CIOTAT MANULOC", "mo": 53.16, "depl": 0.0}, {"id": 785, "code": 78450, "nom": "PROVHERBES", "mo": 51.45, "depl": 77.17}, {"id": 786, "code": 62550, "nom": "CHAMPION BELLE DE MAI MANULOC", "mo": 53.16, "depl": 83.51}, {"id": 787, "code": 62550, "nom": "CHAMPION St BARNABE MANULOC", "mo": 53.16, "depl": 83.51}, {"id": 788, "code": 80000, "nom": "R.C.L RESEAU COLIS LOGISTIQUE", "mo": 51.2, "depl": 77.17}, {"id": 789, "code": 53300, "nom": "LAJOUX ET ASSOCIES SARL", "mo": 51.45, "depl": 77.17}, {"id": 792, "code": 54000, "nom": "PROVENCALE DE LOISIRS PATIO DE CAMARGUE", "mo": 51.45, "depl": 77.17}, {"id": 794, "code": 94455, "nom": "TRANSPORT JEROME", "mo": 50.0, "depl": 0.0}, {"id": 795, "code": 6000, "nom": "BASEQUIP", "mo": 53.16, "depl": 30.42}, {"id": 797, "code": 17800, "nom": "CHARLATTE MANUTENTION", "mo": 51.61, "depl": 52.7}, {"id": 798, "code": 55000, "nom": "JP LAURENT ET FILS", "mo": 54.75, "depl": 114.66}, {"id": 799, "code": 88070, "nom": "SMRI", "mo": 51.45, "depl": 0.0}, {"id": 800, "code": 57200, "nom": "LECLERC SA", "mo": 53.59, "depl": 0.0}, {"id": 801, "code": 36100, "nom": "FRANS BONHOMME", "mo": 53.16, "depl": 79.74}, {"id": 802, "code": 92510, "nom": "TCR France", "mo": 51.45, "depl": 77.17}, {"id": 803, "code": 50500, "nom": "JEAN DIDIER", "mo": 51.45, "depl": 75.45}, {"id": 804, "code": 819000, "nom": "RICHARDSON PORD DE BOUC", "mo": 61.8, "depl": 0.0}, {"id": 805, "code": 37300, "nom": "GADE SERVICES", "mo": 45.0, "depl": 80.0}, {"id": 806, "code": 2300, "nom": "ANDREO MAX", "mo": 62.0, "depl": 77.17}, {"id": 807, "code": 59475, "nom": "LOXAM", "mo": 51.45, "depl": 0.0}, {"id": 808, "code": 73000, "nom": "PARTNERS EXPORT", "mo": 53.16, "depl": 0.0}, {"id": 809, "code": 87640, "nom": "SEQUFERM", "mo": 53.16, "depl": 0.0}, {"id": 810, "code": 34720, "nom": "FH MARBRERIE", "mo": 53.16, "depl": 83.52}, {"id": 811, "code": 64640, "nom": "MBDA France", "mo": 53.16, "depl": 51.62}, {"id": 812, "code": 85890, "nom": "SAINT-PATY", "mo": 53.16, "depl": 83.33}, {"id": 814, "code": 52100, "nom": "LABROSSE EQUIPEMENT", "mo": 51.45, "depl": 0.0}, {"id": 815, "code": 77750, "nom": "PROVENCE VULCANISATION", "mo": 53.16, "depl": 0.0}, {"id": 816, "code": 56000, "nom": "CHAINE TERMINAL MARSEILLE", "mo": 53.16, "depl": 48.36}, {"id": 817, "code": 16000, "nom": "CHEVALLIER CHRISTIAN", "mo": 53.16, "depl": 83.52}, {"id": 819, "code": 63600, "nom": "MAP HANDLING", "mo": 54.95, "depl": 82.4}, {"id": 821, "code": 9000, "nom": "B.M.F Bois et menuiserie de Fos", "mo": 54.94, "depl": 0.0}, {"id": 825, "code": 0, "nom": "CCI AEROPORT NICE", "mo": 52.2, "depl": 345.0}, {"id": 828, "code": 0, "nom": " CABANNE DU SOLEIL EARL", "mo": 62.0, "depl": 90.0}, {"id": 829, "code": 0, "nom": "ACCENT DU SUD", "mo": 62.0, "depl": 0.0}, {"id": 830, "code": 92150, "nom": "SUD INOX", "mo": 56.0, "depl": 0.0}, {"id": 831, "code": 8830, "nom": "DOMINION", "mo": 61.8, "depl": 0.0}, {"id": 832, "code": 800, "nom": "AGS DEMENAGEMENT", "mo": 62.0, "depl": 0.0}, {"id": 834, "code": 87790, "nom": "SOCIETE DE FREINAGE MOBILE", "mo": 48.0, "depl": 0.0}, {"id": 836, "code": 3730, "nom": "ARMATECH", "mo": 56.0, "depl": 0.0}, {"id": 837, "code": 32050, "nom": "ENDEL fos sur Mer", "mo": 56.0, "depl": 0.0}, {"id": 839, "code": 75700, "nom": "PISCINE PLAGE", "mo": 61.0, "depl": 0.0}, {"id": 840, "code": 58550, "nom": "LES USINEURS DU GARLABAN", "mo": 60.27, "depl": 0.0}, {"id": 843, "code": 64415, "nom": "MARTIAL", "mo": 60.29, "depl": 0.0}, {"id": 844, "code": 88160, "nom": "SN SMTM", "mo": 60.29, "depl": 0.0}, {"id": 845, "code": 33510, "nom": "FAILLA", "mo": 61.8, "depl": 0.0}, {"id": 846, "code": 970, "nom": "ALL RACK", "mo": 62.0, "depl": 0.0}, {"id": 847, "code": 60900, "nom": "MAB POIDS LOURDS", "mo": 61.8, "depl": 0.0}, {"id": 848, "code": 92170, "nom": "SUD LOGISTIQUE", "mo": 61.8, "depl": 0.0}, {"id": 849, "code": 2600, "nom": "APIC", "mo": 62.0, "depl": 0.0}, {"id": 850, "code": 33450, "nom": "EUROMASTER", "mo": 61.8, "depl": 0.0}, {"id": 851, "code": 24750, "nom": "CRISPU", "mo": 61.8, "depl": 0.0}, {"id": 853, "code": 29920, "nom": "DREAM TEAM CAR", "mo": 61.8, "depl": 0.0}, {"id": 854, "code": 1680, "nom": "ALPHA SOLUTION HABITAT", "mo": 62.0, "depl": 55.7}, {"id": 856, "code": 95468, "nom": "VEOLIA", "mo": 62.0, "depl": 0.0}, {"id": 857, "code": 58260, "nom": "JARDIN MINUTE", "mo": 61.8, "depl": 0.0}, {"id": 858, "code": 80500, "nom": "RECYCLE PNEU", "mo": 61.8, "depl": 0.0}, {"id": 859, "code": 5600, "nom": "BALLET NATIONNAL DE MARSEILLE", "mo": 62.0, "depl": 0.0}, {"id": 860, "code": 85610, "nom": "SARM COMPOSITE", "mo": 62.0, "depl": 0.0}, {"id": 861, "code": 92180, "nom": "SUN EXPRESS", "mo": 62.0, "depl": 0.0}, {"id": 862, "code": 70820, "nom": "NOUVELLE ATTITUDE", "mo": 62.0, "depl": 0.0}, {"id": 863, "code": 88180, "nom": "KATOEN NATIE", "mo": 62.0, "depl": 0.0}, {"id": 864, "code": 1, "nom": "EUROVIA ASPHALTEX", "mo": 65.0, "depl": 61.27}, {"id": 865, "code": 2, "nom": "RONALEV", "mo": 61.8, "depl": 0.0}, {"id": 866, "code": 81950, "nom": "RICHARDSON PLASTIQUE", "mo": 61.8, "depl": 75.0}, {"id": 868, "code": 95400, "nom": "THEATRE NATIONNAL MARSEILLE - LA CRIEE", "mo": 61.8, "depl": 95.94}, {"id": 869, "code": 32150, "nom": "ENGIE", "mo": 61.8, "depl": 55.7}, {"id": 870, "code": 70100, "nom": "NETAFIM", "mo": 63.0, "depl": 106.0}, {"id": 871, "code": 5960, "nom": "BAYZE MARINE", "mo": 63.0, "depl": 230.0}, {"id": 872, "code": 17750, "nom": "CHARIOT PLUS", "mo": 63.0, "depl": 228.0}, {"id": 873, "code": 34890, "nom": "FOODEX SUD", "mo": 63.0, "depl": 80.0}, {"id": 874, "code": 9410, "nom": "BELFINGER PREFAL", "mo": 65.0, "depl": 58.0}, {"id": 875, "code": 33500, "nom": "ESAT DES ETANGS", "mo": 65.0, "depl": 0.0}, {"id": 876, "code": 5930, "nom": "BARUCCO", "mo": 65.0, "depl": 95.0}, {"id": 877, "code": 0, "nom": "PETITS ROBIN", "mo": 69.0, "depl": 0.0}, {"id": 878, "code": 0, "nom": "APM", "mo": 69.0, "depl": 0.0}, {"id": 880, "code": 89935, "nom": "SOMET", "mo": 65.0, "depl": 0.0}, {"id": 882, "code": 78760, "nom": "QUINCAILLERIE GENERALE", "mo": 70.0, "depl": 0.0}, {"id": 883, "code": 10750, "nom": "BOUHDEL", "mo": 70.0, "depl": 0.0}, {"id": 884, "code": 24780, "nom": "CROPA", "mo": 70.0, "depl": 0.0}, {"id": 885, "code": 28300, "nom": "DJIMP FABRICATION", "mo": 70.0, "depl": 0.0}, {"id": 886, "code": 88725, "nom": "STELLA INDUSTRIE", "mo": 70.0, "depl": 0.0}, {"id": 887, "code": 29450, "nom": "COFFRALOC", "mo": 70.0, "depl": 0.0}, {"id": 888, "code": 98550, "nom": "WELDING GROUPE", "mo": 70.0, "depl": 0.0}, {"id": 889, "code": 53000, "nom": "KS RENOV", "mo": 70.0, "depl": 0.0}, {"id": 890, "code": 1, "nom": "EARL LES CARMES", "mo": 70.0, "depl": 0.0}, {"id": 891, "code": 2, "nom": "MARIE YANG", "mo": 70.0, "depl": 0.0}, {"id": 892, "code": 3, "nom": "GRAND PRIMEUR", "mo": 70.0, "depl": 0.0}, {"id": 893, "code": 4, "nom": "PRODUCTION DU LUBERON", "mo": 70.0, "depl": 0.0}, {"id": 898, "code": 8, "nom": "BTB", "mo": 70.0, "depl": 0.0}, {"id": 899, "code": 9, "nom": "JET FREEZE", "mo": 70.0, "depl": 0.0}, {"id": 900, "code": 10, "nom": "ASPHALTEX", "mo": 70.0, "depl": 0.0}, {"id": 901, "code": 11, "nom": "PROTECS", "mo": 70.0, "depl": 0.0}, {"id": 903, "code": 34835, "nom": "FIBRA", "mo": 70.0, "depl": 62.2}, {"id": 904, "code": 999999, "nom": "SUD PRIMEUR", "mo": 70.0, "depl": 0.0}, {"id": 905, "code": 999999, "nom": "MADY", "mo": 70.0, "depl": 0.0}, {"id": 906, "code": 999999, "nom": "LGM ECHAFAUDAGES", "mo": 70.0, "depl": 0.0}, {"id": 907, "code": 999999, "nom": "XT VISION", "mo": 70.0, "depl": 0.0}, {"id": 908, "code": 999999, "nom": "ENERJBio", "mo": 70.0, "depl": 0.0}, {"id": 909, "code": 999999, "nom": "TGS", "mo": 70.0, "depl": 0.0}, {"id": 910, "code": 999999, "nom": "PSI AZALAI", "mo": 70.0, "depl": 0.0}, {"id": 911, "code": 999999, "nom": "PREFALL ISOL", "mo": 70.0, "depl": 0.0}, {"id": 912, "code": 999999, "nom": "FOSEC", "mo": 70.0, "depl": 40.0}, {"id": 913, "code": 999999, "nom": "France PISCINES", "mo": 70.0, "depl": 0.0}, {"id": 915, "code": 999999, "nom": "DOMAINE DE TREVALLON", "mo": 70.0, "depl": 70.8}, {"id": 916, "code": 0, "nom": "OPERA DE MARSEILLE", "mo": 70.0, "depl": 0.0}, {"id": 922, "code": 999999, "nom": "SOMEFOR", "mo": 70.0, "depl": 0.0}, {"id": 923, "code": 999999, "nom": "ADES", "mo": 70.0, "depl": 0.0}, {"id": 924, "code": 999999, "nom": "BEL'O - VALENGO", "mo": 70.0, "depl": 0.0}];
+const DB_MACHINES=[{"client": "CSP PARIS FASHION", "marque": "ATLET", "type": "XSN 160 SDT FV", "matricule": ""}, {"client": "CSP PARIS FASHION", "marque": "ATLET", "type": "A160 SDTFVJN480", "matricule": "EX G5148"}, {"client": "CSP PARIS FASHION", "marque": "ATLET", "type": "TLP 200", "matricule": ""}, {"client": "ARLEX", "marque": "FENWICK", "type": "CHARH16T-03", "matricule": "MB 20 20T 01445/350"}, {"client": "ARLEX", "marque": "ATLET", "type": "CSL125", "matricule": ""}, {"client": "ARLEX", "marque": "ATLET", "type": "UNS 141 DTFV XM795 N°2", "matricule": "UNS04373"}, {"client": "ARLEX", "marque": "ATLET", "type": "AJN160SDTFV480", "matricule": ""}, {"client": "PERRETS ETS SA", "marque": "STILL", "type": "FRONTAL", "matricule": ""}, {"client": "PERRETS ETS SA", "marque": "JUNGHEINRICH", "type": "FRONTAL", "matricule": ""}, {"client": "DASSAULT AVIATION", "marque": "CHARLATTE", "type": "T140D", "matricule": "TP7"}, {"client": "EPC", "marque": "FENWICK", "type": "T16", "matricule": ""}, {"client": "CSP PARIS FASHION", "marque": "ATLET", "type": "141 DTF VRE 760 / 4", "matricule": ""}, {"client": "CSP PARIS FASHION", "marque": "ATLET", "type": "TLP200", "matricule": ""}, {"client": "CSP PARIS FASHION", "marque": "ATLET", "type": "CSL125", "matricule": ""}, {"client": "DASSAULT AVIATION", "marque": "HYSTER", "type": "H2.50XM", "matricule": "N°4"}, {"client": "JOHN COCKERILL", "marque": "CLARK", "type": "C35D-T4620", "matricule": ""}, {"client": "CSP PARIS FASHION", "marque": "UNICARRIERS", "type": "PDP20THP167", "matricule": ""}, {"client": "FARGIER EURL", "marque": "", "type": "SOMECA 600", "matricule": ""}, {"client": "DASSAULT AVIATION", "marque": "FENWICK", "type": "H30G", "matricule": "CF4"}, {"client": "CENTRE HOSPITALIER DE MARTIGUES", "marque": "STILL et SAXBY", "type": "EGV X", "matricule": ""}, {"client": "PERRETS ETS SA", "marque": "TOYOTA", "type": "FRONTAL", "matricule": ""}, {"client": "DASSAULT AVIATION", "marque": "FENWICK", "type": "E15", "matricule": "9160333"}, {"client": "PERRETS ETS SA", "marque": "JUNGHEINRICH", "type": "FRNTAL", "matricule": ""}, {"client": "PERRETS ETS SA", "marque": "TRANSMANUT", "type": "ELEVATEUR EMBARQUE CONDUCTEUR DEBOUT", "matricule": ""}, {"client": "PERRETS ETS SA", "marque": "TRANSMANUT", "type": "ELEVATEUR EMBARQUE CONDUCTEUR ASSIS", "matricule": ""}, {"client": "DASSAULT AVIATION", "marque": "SIMON", "type": "BOXER 120", "matricule": "N°3"}, {"client": "SECOMOC", "marque": "MANITOU", "type": "MLT523T", "matricule": "B-E2"}, {"client": "SECOMOC", "marque": "CLARK", "type": "C35D", "matricule": ""}, {"client": "AGS DEMENAGEMENT", "marque": "HANGCHA", "type": "A4W40-E  / CPCD40 AC4", "matricule": ""}, {"client": "ARMATECH", "marque": "GENIE", "type": "4013SX", "matricule": ""}, {"client": "SN SMTM", "marque": "HANGCHA", "type": "CBD15-EM", "matricule": ""}, {"client": "AGS DEMENAGEMENT", "marque": "SMV", "type": "SL12-1200A", "matricule": ""}, {"client": "SUD LOGISTIQUE", "marque": "FENWICK", "type": "E16C-02", "matricule": ""}, {"client": "SUD LOGISTIQUE", "marque": "FENWICK", "type": "L14", "matricule": ""}, {"client": "CENTRE HOSPITALIER DE MARTIGUES", "marque": "FENWICK", "type": "L14", "matricule": ""}, {"client": "SN SMTM", "marque": "STOCKMAN (noblelift)", "type": "PTE15N", "matricule": "360055"}, {"client": "SN SMTM", "marque": "STOCKMAN (Noblelift)", "type": "PTE15N", "matricule": "360056"}, {"client": "BALLET NATIONNAL DE MARSEILLE", "marque": "GENIE", "type": "AWP25S", "matricule": ""}, {"client": "SN SMTM", "marque": "HANGCHA (EP)", "type": "CBD15", "matricule": ""}, {"client": "SARM COMPOSITE", "marque": "KOMATSU", "type": "FD25T16R", "matricule": ""}, {"client": "DASSAULT AVIATION", "marque": "MATILSA", "type": "N°9", "matricule": ""}, {"client": "DASSAULT AVIATION", "marque": "BT", "type": " LSV1000", "matricule": "N°11"}, {"client": "ARLEX", "marque": "ATLET", "type": "PSL125TN179", "matricule": ""}, {"client": "ARLEX", "marque": "ATLET", "type": "PLP", "matricule": ""}, {"client": "NOUVELLE ATTITUDE", "marque": "HANGCHA", "type": "CPDS20-AC5", "matricule": ""}, {"client": "KATOEN NATIE", "marque": "HAULOTTE", "type": "COMPACT 14", "matricule": "76000-23"}, {"client": "KATOEN NATIE", "marque": "HAULOTTE", "type": "COMPACT 14", "matricule": "76000-24"}, {"client": "SECOMOC", "marque": "LINDE", "type": "H70D-03", "matricule": ""}, {"client": "AGS DEMENAGEMENT", "marque": "HANGCHA", "type": "A4W40-E", "matricule": ""}, {"client": "INTERNATIONAL EXPORT AGENCY", "marque": "ATLET", "type": "DX15G", "matricule": "PG1D1E"}, {"client": "SN SMTM", "marque": "HANGCHA", "type": "CBD15 AMC1 -I Lithium", "matricule": ""}, {"client": "SN SMTM", "marque": "HANGCHA", "type": "CBD15 AMC1 - I", "matricule": ""}, {"client": "SN SMTM", "marque": "HANGCHA (EP)", "type": "CBD15 EM", "matricule": ""}, {"client": "SN SMTM", "marque": "HANGCA CBD15", "type": "CBD15L", "matricule": ""}, {"client": "CHARIOT PLUS", "marque": "HANGCHA", "type": "A4W20", "matricule": ""}, {"client": "JOHN COCKERILL", "marque": "HANGCHA", "type": "TT35-2 CPCD35-XW98E-RT2", "matricule": ""}, {"client": "SECOMOC", "marque": "CLARK", "type": "C70D", "matricule": ""}, {"client": "ESAT DES ETANGS", "marque": "FENWICK", "type": "E12", "matricule": ""}, {"client": "BARUCCO", "marque": "FENWICK", "type": "H20D-03", "matricule": ""}, {"client": "SN SMTM", "marque": "HANGCHA", "type": "CBD15 i Lithium", "matricule": ""}, {"client": "SN SMTM", "marque": "HANGCHA", "type": "CDB15-A3MC1 -I Lithium", "matricule": ""}, {"client": "SN SMTM", "marque": "HANGCHA", "type": "CBD15 A3MC1-I", "matricule": ""}, {"client": "RECYCLE PNEU", "marque": "HANGCHA", "type": "CPCD25 XW27F", "matricule": ""}, {"client": "JOHN COCKERILL", "marque": "HANGCHA", "type": "CPCD50XXW35B", "matricule": ""}, {"client": "EUROMASTER", "marque": "MOFFET", "type": "M5 - 20 3NX", "matricule": ""}, {"client": "FIBRA", "marque": "NISSAN", "type": "YD1D2A25Q", "matricule": ""}, {"client": "MADY", "marque": "ATLET", "type": "UFS 250DTFVXG900", "matricule": ""}, {"client": "LGM ECHAFAUDAGES", "marque": "STILL", "type": "R70-20G", "matricule": ""}, {"client": "XT VISION", "marque": "HANGCHA", "type": "CPDS10 XD2", "matricule": ""}, {"client": "JOHN COCKERILL", "marque": "HANGCHA", "type": "CPD20-AEXY2-i", "matricule": ""}, {"client": "ENERJBio", "marque": "HANGCHA", "type": "CPD18-AEY2-i", "matricule": ""}, {"client": "TGS", "marque": "HANGCHA", "type": "XE38i - CPD38-XEY2-SI", "matricule": ""}, {"client": "SN SMTM", "marque": "HANGCHA", "type": "CBD15-A2MC1", "matricule": ""}, {"client": "JOHN COCKERILL", "marque": "HANGCHA", "type": "CPCD120-XXW96", "matricule": ""}, {"client": "PREFALL ISOL", "marque": "HELI", "type": "CPCD25-XC26H", "matricule": ""}, {"client": "FOSEC", "marque": "ATLET", "type": "UNS 140DTFVXC645", "matricule": ""}, {"client": "France PISCINES", "marque": "HANGCHA", "type": "CPD25-XEY2-SI", "matricule": ""}, {"client": "France PISCINES", "marque": "CLARK", "type": "WSX12-0038", "matricule": ""}, {"client": "EUROMASTER", "marque": "FENWICK", "type": "H35T", "matricule": ""}, {"client": "JARDIN MINUTE", "marque": "HANGCHA", "type": "CBD15 - A3MC1-I", "matricule": ""}, {"client": "NETAFIM", "marque": "HANGCHA", "type": "CPD20 AEXY2-i", "matricule": ""}, {"client": "SN SMTM", "marque": "HANGCHA", "type": "CBD15-AMJ2-SI", "matricule": ""}, {"client": "DOMINION", "marque": "HANGCHA", "type": "CBD15A3MC2", "matricule": ""}, {"client": "SN SMTM", "marque": "HANGCHA", "type": "CBD15iAMC1", "matricule": ""}, {"client": "CROPA", "marque": "FENWICK", "type": "H30D", "matricule": ""}, {"client": "COFFRALOC", "marque": "HANGCHA", "type": "TOUT TERRAIN", "matricule": ""}, {"client": "WELDING GROUPE", "marque": "LINDE", "type": "H20D", "matricule": ""}, {"client": "SN SMTM", "marque": "HANGCGA", "type": "CBD15 A3MC1-i", "matricule": ""}, {"client": "SN SMTM", "marque": "HANGCHA", "type": "CBD15i", "matricule": ""}, {"client": "SN SMTM", "marque": "HANGCHA", "type": "CBD15i A3MC2i", "matricule": ""}, {"client": "EARL LES CARMES", "marque": "HANGCHA", "type": "CBD15 - A3MC2-I", "matricule": ""}, {"client": "MARIE YANG", "marque": "", "type": "CBD15 A3MC2-I", "matricule": ""}, {"client": "PROGIBAT", "marque": "FENWICK", "type": "H16T-01", "matricule": ""}, {"client": "SN SMTM", "marque": "HANGCHA", "type": "CBD15 I", "matricule": ""}, {"client": "SN SMTM", "marque": "HANGCHA", "type": "CBD15-A", "matricule": ""}, {"client": "JOHN COCKERILL", "marque": "HANGCHA", "type": "CBD30 - AC1", "matricule": ""}, {"client": "REMA TIP TOP", "marque": "JUNGHEINRICH", "type": "TFG545", "matricule": ""}, {"client": "CHANE", "marque": "HANGCHA", "type": "CPCD30-XW55F", "matricule": ""}, {"client": "BTB", "marque": "HANGCHA", "type": "CPCD60 RW28", "matricule": ""}, {"client": "JET FREEZE", "marque": "HANGCHA", "type": "CBD15 A3MC2-I", "matricule": "E022499"}, {"client": "JET FREEZE", "marque": "HANGCHA", "type": "CBD15 A3MC2-I", "matricule": ""}, {"client": "ASPHALTEX", "marque": "HANGCHA", "type": "FRONTAL", "matricule": ""}, {"client": "BALLET NATIONNAL DE MARSEILLE", "marque": "TOYOTA", "type": "42 7 FGF25", "matricule": "407FGF25"}, {"client": "SUN EXPRESS", "marque": "HANGCHA", "type": "CBD15 A3MC2", "matricule": ""}, {"client": "JET FREEZE", "marque": "HANGCHA (EP)", "type": "CBD15 EM", "matricule": ""}, {"client": "JET FREEZE", "marque": "STILL", "type": "ECH15", "matricule": ""}, {"client": "JET FREEZE", "marque": "HANGCHA", "type": "CBD15 A3MC2-I", "matricule": "FB062VF"}, {"client": "CSP PARIS FASHION", "marque": "HANGCHA", "type": "CBD15 EM", "matricule": ""}, {"client": "MAB POIDS LOURDS", "marque": "HANGCHA", "type": "CBD15-A2MC1", "matricule": ""}, {"client": "MAB POIDS LOURDS", "marque": "HANGCHA", "type": "CBD15 A2MC1", "matricule": ""}, {"client": "PROBMAT", "marque": "HELI", "type": "CPCD25", "matricule": ""}, {"client": "DOMAINE DE TREVALLON", "marque": "LIFTER", "type": "GX12125 PLUS", "matricule": "F06727A"}, {"client": "LA GALEXE", "marque": "FENWICK", "type": "H16T-03", "matricule": ""}, {"client": "VALLON SAINTE MARTHE", "marque": "FENWICK", "type": "FRONTAL", "matricule": "ML2778"}, {"client": "SOMEFOR", "marque": "STILL", "type": "FM-X14", "matricule": ""}, {"client": "SOMEFOR", "marque": "JUNGHEINRICH", "type": "ECE", "matricule": ""}, {"client": NaN, "marque": "MANITOU", "type": "MSI50", "matricule": "021878"}, {"client": NaN, "marque": "NISSAN", "type": "B5ZVF05H70U", "matricule": "300125"}, {"client": NaN, "marque": "MIC", "type": "MIC A180C", "matricule": ""}, {"client": NaN, "marque": "ATLET", "type": "TLP 200", "matricule": ""}, {"client": NaN, "marque": "MANITOU", "type": "MSI 50", "matricule": ""}, {"client": NaN, "marque": "YALE", "type": "ERP15RCFE1934", "matricule": ""}, {"client": NaN, "marque": "ATLET", "type": "TLP 200", "matricule": "TLP22645"}, {"client": NaN, "marque": "ATLET", "type": "TLP 200", "matricule": "TLP22646"}, {"client": NaN, "marque": "ATLET", "type": "TLP 200", "matricule": "TLP22647"}, {"client": NaN, "marque": "ATLET", "type": "UNS 140", "matricule": "140DTFVXC645"}, {"client": NaN, "marque": "NISSAN", "type": "NO1L15HQ", "matricule": "720927"}, {"client": NaN, "marque": "NISSAN", "type": "NO1L15HQ", "matricule": "720947"}, {"client": NaN, "marque": "NISSAN", "type": "PDO1A18PQ", "matricule": ""}, {"client": NaN, "marque": "CLARK", "type": "DPM 15B", "matricule": ""}, {"client": NaN, "marque": "FENWICK", "type": "H25T", "matricule": ""}, {"client": NaN, "marque": "HANGCHA", "type": "XF25D", "matricule": "CPCD 25"}, {"client": NaN, "marque": "FENWICK", "type": "HD25D", "matricule": ""}, {"client": NaN, "marque": "FENWICK", "type": "E15 54Z", "matricule": "960895"}, {"client": NaN, "marque": "FENWICK", "type": "H35D", "matricule": ""}, {"client": NaN, "marque": "CLARK", "type": "CDP 30H", "matricule": ""}, {"client": NaN, "marque": "FENWICK", "type": "H60D", "matricule": ""}, {"client": NaN, "marque": "ATLET", "type": "AJN 160 S TFV 4500", "matricule": ""}, {"client": NaN, "marque": "KOMATSU", "type": "MSW 14.1R", "matricule": ""}, {"client": NaN, "marque": "KOMATSU", "type": "FD30T-16R", "matricule": ""}, {"client": NaN, "marque": "YAMAHA", "type": "", "matricule": ""}, {"client": NaN, "marque": "FENWICK", "type": "ME40T01-049-5/337", "matricule": "G1X168T00016"}, {"client": NaN, "marque": "CHARLATTE", "type": "T140D", "matricule": ""}, {"client": NaN, "marque": "SOVAM", "type": "", "matricule": ""}, {"client": NaN, "marque": "KOMATSU", "type": "FD25T.16R", "matricule": "701017R"}, {"client": NaN, "marque": "KOMATSU", "type": "FD25T-16R", "matricule": "701051R"}, {"client": NaN, "marque": "KOMATSU", "type": "FD25T-16R", "matricule": "701092R"}, {"client": NaN, "marque": "KOMATSU", "type": "FD25T-16R", "matricule": "701768R"}, {"client": NaN, "marque": "KOMATSU", "type": "FD25T-16R", "matricule": "701813R"}, {"client": NaN, "marque": "KOMATSU", "type": "FD25T-16R", "matricule": "701835R"}, {"client": NaN, "marque": "OMG", "type": "ERGOS 25 TA 4", "matricule": ""}, {"client": NaN, "marque": "ATLET", "type": "AJN 160 SDTFV 480", "matricule": ""}, {"client": NaN, "marque": "ATLET", "type": "AJN 160 STFV 450", "matricule": ""}, {"client": NaN, "marque": "FENWICK", "type": "H16T", "matricule": ""}, {"client": NaN, "marque": "KOMATSU", "type": "MWQ07", "matricule": ""}, {"client": NaN, "marque": "ATLET", "type": "DL18  Y1D118T", "matricule": ""}, {"client": NaN, "marque": "ATLET", "type": "TLP200 TPV", "matricule": ""}, {"client": NaN, "marque": "ATLET", "type": "PLL180", "matricule": ""}, {"client": NaN, "marque": "HYSTER", "type": "H6.00XL", "matricule": ""}, {"client": NaN, "marque": "HANGCHA", "type": "cpcd60/70", "matricule": ""}, {"client": NaN, "marque": "ATLET", "type": "AJN160DTFV480", "matricule": ""}, {"client": NaN, "marque": "MANITOU", "type": "MSI25 - 1E2", "matricule": ""}, {"client": NaN, "marque": "CATERPILLAR", "type": "EP20NT", "matricule": ""}, {"client": NaN, "marque": "ATLET", "type": "UNS140", "matricule": ""}, {"client": NaN, "marque": "ATLET", "type": "XSN", "matricule": ""}, {"client": NaN, "marque": "HYSTER", "type": "H3.20XML", "matricule": ""}, {"client": NaN, "marque": "HANGCHA", "type": "CPCD25 XW25F", "matricule": ""}, {"client": NaN, "marque": "HANGCHA", "type": "CBD20-TC1", "matricule": ""}, {"client": NaN, "marque": "ATLET", "type": "PLL145", "matricule": ""}, {"client": NaN, "marque": "NISSAN", "type": "", "matricule": ""}, {"client": NaN, "marque": "ATLET", "type": "TX3", "matricule": ""}, {"client": NaN, "marque": "ATLET", "type": "1D1A18QL", "matricule": ""}, {"client": NaN, "marque": "YALE", "type": "GPD50MJ", "matricule": ""}, {"client": NaN, "marque": "JLG", "type": "45 ELECTRIQUE", "matricule": ""}, {"client": NaN, "marque": "FENWICK", "type": "H40T", "matricule": ""}, {"client": NaN, "marque": "MITSUBISHI", "type": "FB16NT", "matricule": ""}, {"client": NaN, "marque": "YALE", "type": "MP20X", "matricule": ""}, {"client": NaN, "marque": "HANGCHA", "type": "XF30D", "matricule": ""}, {"client": NaN, "marque": "HANGCHA", "type": "XF25D", "matricule": "CPCD25 XW55F"}, {"client": NaN, "marque": "ATLET", "type": "AJN1460SDTFVSJN630", "matricule": ""}, {"client": NaN, "marque": "HANGCHA", "type": "CDD12-AEC1", "matricule": ""}, {"client": NaN, "marque": "ATLET", "type": "AJN160TFV450", "matricule": ""}, {"client": NaN, "marque": "HANGCHA", "type": "A3W18", "matricule": ""}, {"client": NaN, "marque": "HANGCHA", "type": "XF35D", "matricule": ""}, {"client": NaN, "marque": "HANGCHA", "type": "TT35-2", "matricule": "N12144"}, {"client": NaN, "marque": "CROWN", "type": "WT3040", "matricule": "17531"}, {"client": NaN, "marque": "HANGCHA", "type": "CBD15A", "matricule": ""}, {"client": NaN, "marque": "HANGCHA", "type": "A3W15 - CPDS15", "matricule": "7274"}, {"client": NaN, "marque": "FENWICK", "type": "V08-02", "matricule": ""}, {"client": NaN, "marque": "HANGCHA", "type": "CDD16 AEC1", "matricule": ""}, {"client": NaN, "marque": "", "type": "", "matricule": ""}, {"client": NaN, "marque": "HANGCHA", "type": "XF50D", "matricule": "N13231"}, {"client": NaN, "marque": "HANGCHA", "type": "XF60D", "matricule": "N14488"}, {"client": NaN, "marque": "HANGCHA", "type": "CPCD35 XW55F", "matricule": ""}, {"client": NaN, "marque": "HANGCHA", "type": "XE25i", "matricule": "CPD25-XEY2H"}, {"client": NaN, "marque": "PEUGEOT", "type": "7BBHZM/S", "matricule": "EA205QL"}, {"client": NaN, "marque": "HANGCHA", "type": "XF25D-2 - CPCD25-X2H7F1", "matricule": "5024"}, {"client": NaN, "marque": "HANGCHA", "type": "XF25D-2 - CPCD25-X2H7F1", "matricule": "5025"}];
+const VGP_INITIAL=[{"id": 1, "libelle": "CHARIOT ATLET S1N1L13T N°1561", "type": "S1N1L13T", "serie": "S1N1E721561", "constructeur": "ATLET", "parc": "G5178", "client": "MAGASIN B ET M", "validite": "2024-05-23", "lieu": "MAGASIN B ET M 13920 ST MITRE", "freq": 12, "energy": "elec", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "MAGASIN B ET M"}, {"id": 2, "libelle": "GERBEUR HANGCHA CDD12 N°3555", "type": "CDD12 AEC1", "serie": "I8AH03555", "constructeur": "HANGCHA", "parc": "G5203", "client": "AIRBUS HELICOPTERS", "validite": "2025-07-21", "lieu": "AIRBUS HELICOPTERS FRANCE 13725 MARIGNANE", "freq": 12, "energy": "elec", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "AIRBUS HELICOPTERS"}, {"id": 3, "libelle": "CHARIOT ELEVATEUR CPCD20", "type": "CPD20", "serie": "35BE00389", "constructeur": "HANGCHA", "parc": "CPD20 N°0389", "client": "ESAT DES ETANGS", "validite": "2025-09-17", "lieu": "ESAT DES ETANGS 13110 PORT DE BOUC", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "ESAT DES ETANGS"}, {"id": 4, "libelle": "CHARIOT HANGCHA CPDS20 N°0074", "type": "CPDS20 AC5", "serie": "L4AF00074", "constructeur": "HANGCHA", "parc": "CPDS20 N°0074", "client": "ISSEO", "validite": "2025-11-14", "lieu": "ISSEO 13110 PORT DE BOUC", "freq": 12, "energy": "elec", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "PROPRE", "locataire": ""}, {"id": 5, "libelle": "MITSUBISHI FB16NT N°0288", "type": "FB16NT", "serie": "EFB1120288", "constructeur": "MITSUBISHI", "parc": "G5187", "client": "ISSEO", "validite": "2026-01-31", "lieu": "ATELIER STOCKAGE ISSEO 13110 PORT DE BOUC", "freq": 12, "energy": "elec", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "PROPRE", "locataire": ""}, {"id": 6, "libelle": "GIES i5000", "type": "GIES", "serie": "19BB01031", "constructeur": "HANGCHA", "parc": "GIES i5000", "client": "SPSE", "validite": "2026-02-05", "lieu": "SPSE 13270 FOS SUR MER", "freq": 12, "energy": "elec", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "SPSE"}, {"id": 7, "libelle": "CHARIOT MANITOU MSI25 N°7105", "type": "MSI25", "serie": "237105", "constructeur": "MANITOU", "parc": "i 5007", "client": "DOMINION ACIERIE", "validite": "2026-04-30", "lieu": "DOMINION ACIERIE 13270 FOS SUR MER", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "DOMINION ACIERIE"}, {"id": 8, "libelle": "G45 FENWICK-LINDE", "type": "H 45D-04", "serie": "H2X352M02283", "constructeur": "FENWICK-LINDE", "parc": "G45", "client": "GARAGE DE L'AUTOROUTE", "validite": "2026-05-06", "lieu": "GARAGE DE L'AUTOROUTE 13110 PORT DE BOUC", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "GARAGE DE L'AUTOROUTE"}, {"id": 9, "libelle": "HANGCHA CPDS15 AC5 N°1578", "type": "CPDS15 AC5", "serie": "L4AI01578", "constructeur": "HANGCHA", "parc": "I5004 / G5205", "client": "ISSEO", "validite": "2026-05-12", "lieu": "ATELIER STOCKAGE ISSEO 13110 PORT DE BOUC", "freq": 12, "energy": "elec", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "PROPRE", "locataire": ""}, {"id": 10, "libelle": "CROWN WT3040 N°0811", "type": "WT3040", "serie": "5A610811", "constructeur": "CROWN", "parc": "I5003", "client": "ISSEO", "validite": "2026-05-13", "lieu": "ATELIER STOCKAGE ISSEO 13110 PORT DE BOUC", "freq": 12, "energy": "elec", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "PROPRE", "locataire": ""}, {"id": 11, "libelle": "HANGCHA CPCD35 N°7268", "type": "CPCD 35", "serie": "A5AH07168", "constructeur": "HANGCHA", "parc": "G5200", "client": "JOHN COCKERILL", "validite": "2026-05-28", "lieu": "JOHN COCKERILL TRAIN A BANDE 13270 FOS SUR MER", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "JOHN COCKERILL"}, {"id": 12, "libelle": "CHARIOT HANGCHA CPCD35 N°1924", "type": "CPCD35-XW98E-RT2", "serie": "L7BA01924", "constructeur": "HANGCHA", "parc": "CPCD35 N°1924", "client": "JOHN COCKERILL", "validite": "2026-05-28", "lieu": "JOHN COCKERILL LHF 13270 FOS SUR MER", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "JOHN COCKERILL"}, {"id": 13, "libelle": "CHARIOT FRONTAL CPCD60", "type": "CPCD60", "serie": "080308314080306573", "constructeur": "HANGCHA", "parc": "G5154", "client": "SARM COMPOSITE", "validite": "2026-06-03", "lieu": "SARM COMPOSITE 13110 PORT DE BOUC", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "SARM COMPOSITE"}, {"id": 14, "libelle": "CHARIOT FRONTAL CPCD30", "type": "CPCD30 XW55F", "serie": "A5AG06058", "constructeur": "HANGCHA", "parc": "HANGCHA CPCD30 N°058", "client": "CHANE TERMINALS", "validite": "2026-06-03", "lieu": "CHANE TERMINALS MARSEILLE 13117 MARTIGUES", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "CHANE TERMINALS"}, {"id": 15, "libelle": "CHARIOT NISSAN PD01A18Q N°3249", "type": "PD01A18PQ", "serie": "PD01E703249", "constructeur": "NISSAN", "parc": "G5110", "client": "MGBI", "validite": "2026-06-05", "lieu": "MGBI 13500 MARTIGUES", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "MGBI"}, {"id": 16, "libelle": "CHARIOT ELEVATEUR CPCD35-XW98E", "type": "CPCD35-XW98E-RT2", "serie": "19BB01031", "constructeur": "HANGCHA", "parc": "i5000", "client": "SPSE", "validite": "2026-06-16", "lieu": "SPSE 13270 FOS SUR MER", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "SPSE"}, {"id": 17, "libelle": "CHARIOT ELEVATEUR CPD38", "type": "CPD38-XEY2-SI", "serie": "81BD07969", "constructeur": "HANGCHA", "parc": "HANGCHA CPD38 N°7969", "client": "PROTECS", "validite": "2026-06-22", "lieu": "PROTECS 13270 FOS SUR MER", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "PROTECS"}, {"id": 18, "libelle": "CHARIOT ELEVATEUR CPD25 N°1315", "type": "CPD25-XEY2HA-SI", "serie": "81BE01315", "constructeur": "HANGCHA", "parc": "CPD25 N°1315", "client": "MARIANA LOGISTICS", "validite": "2026-06-22", "lieu": "MARIANA LOGISTICS 13230 PORT ST LOUIS DU RHONE", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "MARIANA LOGISTICS"}, {"id": 19, "libelle": "RALLONGE FOURCHES N°0084", "type": "Fourche", "serie": "24080084", "constructeur": "STOCKMAN", "parc": "RALLONGE FOURCHES N°0084", "client": "", "validite": "2026-06-25", "lieu": "", "freq": 12, "energy": "other", "ownerType": "client_machine", "ownerLabel": "👤 Machine client", "contrat": "MAINT", "locataire": ""}, {"id": 20, "libelle": "RALLONGE FOURCHES N°0090", "type": "Fourche", "serie": "24080090", "constructeur": "STOCKMAN", "parc": "RALLONGE FOURCHES N°0090", "client": "", "validite": "2026-06-25", "lieu": "", "freq": 12, "energy": "other", "ownerType": "client_machine", "ownerLabel": "👤 Machine client", "contrat": "MAINT", "locataire": ""}, {"id": 21, "libelle": "RALLONGE FOURCHES N°080", "type": "Fourche", "serie": "24080080", "constructeur": "STOCKMAN", "parc": "RALLONGE FOURCHES N°080", "client": "", "validite": "2026-06-25", "lieu": "", "freq": 12, "energy": "other", "ownerType": "client_machine", "ownerLabel": "👤 Machine client", "contrat": "MAINT", "locataire": ""}, {"id": 22, "libelle": "RALLONGE FOURCHES N°0078", "type": "Fourche", "serie": "24080078", "constructeur": "STOCKMAN", "parc": "RALLONGE FOURCHES N°0078", "client": "", "validite": "2026-06-25", "lieu": "", "freq": 12, "energy": "other", "ownerType": "client_machine", "ownerLabel": "👤 Machine client", "contrat": "MAINT", "locataire": ""}, {"id": 23, "libelle": "CHARIOT FRONTAL FENWICK H16T", "type": "H16T-03", "serie": "H2X350R01962", "constructeur": "FENWICK-LINDE", "parc": "G5139", "client": "SAS HERO", "validite": "2026-07-05", "lieu": "SAS HERO 13110 PORT DE BOUC", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "SAS HERO"}, {"id": 24, "libelle": "CHARIOT FRONTAL ATLET P1D1A15LT", "type": "P1D1A15LT", "serie": "P1D1E700813", "constructeur": "ATLET", "parc": "ATLET N°0813", "client": "SAS HERO", "validite": "2026-07-05", "lieu": "SAS HERO 13110 PORT DE BOUC", "freq": 12, "energy": "elec", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "SAS HERO"}, {"id": 25, "libelle": "CHARIOT ELEVATEUR H60D FENWICK", "type": "H60D-03", "serie": "E1X353S01429", "constructeur": "FENWICK", "parc": "i 5008", "client": "JOHN COCKERILL", "validite": "2026-07-05", "lieu": "JOHN COCKERILL ATELIER EMPOISES 13270 FOS SUR MER", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "JOHN COCKERILL"}, {"id": 26, "libelle": "CHARIOT ELEVATEUR CPCD120 N°1896", "type": "CPCD120 - XXW96", "serie": "12BC01896", "constructeur": "HANGCHA", "parc": "CPCD120 N°1896", "client": "CMI", "validite": "2026-07-06", "lieu": "CMI LE PONTET 84130 LE PONTET", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "CMI"}, {"id": 27, "libelle": "CHARIOT ELEVATEUR CPCD25 N°0184", "type": "CPCD25 XW98C-RT4", "serie": "19BE00184", "constructeur": "HANGCHA", "parc": "CDPCD25 N°0184", "client": "SARM", "validite": "2026-07-08", "lieu": "SARM CHEZ RHONE ENERGIES 13270 FOS SUR MER", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "SARM"}, {"id": 28, "libelle": "CHARIOT ELEVATEUR CPCD50", "type": "CPCD50 XXH8BN", "serie": "12BC05506", "constructeur": "HANGCHA", "parc": "I5010", "client": "JOHN COCKERILL", "validite": "2026-07-15", "lieu": "JOHN COCKERILL ACIERIE 13270 FOS SUR MER", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "JOHN COCKERILL"}, {"id": 29, "libelle": "CHARIOT ELEVATEUR CAT GP25N N°1331", "type": "GP25N", "serie": "ET17DL51331", "constructeur": "CATERPILLAR", "parc": "CAT GP25N N°1331", "client": "AIRBUS", "validite": "2026-07-22", "lieu": "AIRBUS 13725 MARIGNANE", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "AIRBUS"}, {"id": 30, "libelle": "PEMP GENIE CTXY10.1200", "type": "CTXY10.1200", "serie": "NF150107-15", "constructeur": "GENIE", "parc": "G5206 N°0715", "client": "THEATRE LA CRIEE", "validite": "2026-08-02", "lieu": "THEATRE LA CRIEE 13007 MARSEILLE", "freq": 6, "energy": "elec", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "THEATRE LA CRIEE"}, {"id": 31, "libelle": "CHARIOT ELEVATEUR CPCD25 N°1915", "type": "CPCD25 - AEY2-I", "serie": "35BC01915", "constructeur": "HANGCHA", "parc": "CPCD25 N°1915", "client": "JOHN COCKERILL", "validite": "2026-08-11", "lieu": "JOHN COCKERILL LA FEUILLANE 2 13270 FOS SUR MER", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "JOHN COCKERILL"}, {"id": 32, "libelle": "CHARIOT ELEVATEUR CPCD60 i5022", "type": "CPCD60 XW95G", "serie": "12BD04202", "constructeur": "HANGCHA", "parc": "i5022", "client": "JOHN COCKERILL", "validite": "2026-08-11", "lieu": "JOHN COCKERILL LA FEUILLANE 2 13270 FOS SUR MER", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "JOHN COCKERILL"}, {"id": 33, "libelle": "GERBEUR 1200 KG G5202", "type": "CDD12 AEC1", "serie": "ISAH03303", "constructeur": "HANGCHA", "parc": "G5202", "client": "JOHN COCKERILL", "validite": "2026-09-04", "lieu": "JOHN COKERILL LA MERINDOLE 13110 PORT DE BOUC", "freq": 12, "energy": "elec", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "JOHN COCKERILL"}, {"id": 34, "libelle": "CHARIOT ELEVATEUR HELI CDP35 N°4162", "type": "CDP35", "serie": "05035DM4162", "constructeur": "HELI", "parc": "CHARIOT N°4162", "client": "JOHN COCKERILL", "validite": "2026-09-09", "lieu": "JOHN COCKERILL GPMM 13015 MARSEILLE", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "JOHN COCKERILL"}, {"id": 35, "libelle": "CHARIOT ELEVATEUR HANGCHA CPCD25 G5168", "type": "CPCD25 XW55F", "serie": "A5AD01884", "constructeur": "HANGCHA", "parc": "G5168", "client": "JOHN COCKERILL", "validite": "2026-09-11", "lieu": "JOHN COCKERILL CC 13270 FOS SUR MER", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "JOHN COCKERILL"}, {"id": 36, "libelle": "CHARIOT ELEVATEUR HANGCHA N°5622", "type": "CPCD35", "serie": "A5BA25622", "constructeur": "HANGCHA", "parc": "HANGCHA N°5622", "client": "SARM COMPOSITE", "validite": "2026-09-11", "lieu": "SARM COMPOSITE 13110 PORT DE BOUC", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "SARM COMPOSITE"}, {"id": 37, "libelle": "CHARIOT ELEVATEUR H16T N°2531", "type": "H16T-03", "serie": "H2X350R02531", "constructeur": "FENWICK-LINDE", "parc": "H16T N°2531", "client": "LA GALEXE", "validite": "2026-09-13", "lieu": "LA GALEXE 13230 PORT ST LOUIS DU RHONE", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "LA GALEXE"}, {"id": 38, "libelle": "CHARIOT ELEVATEUR HANGCHA CPCD25 i5006", "type": "CPCD 25", "serie": "A5BA23954", "constructeur": "HANGCHA", "parc": "i 5006", "client": "ISSEO", "validite": "2026-09-25", "lieu": "ATELIER STOCKAGE ISSEO 13110 PORT DE BOUC", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "PROPRE", "locataire": ""}, {"id": 39, "libelle": "CHARIOT ELEVATEUR CPD25 I5023", "type": "CPD25-XEY2H-SI", "serie": "81BD14513", "constructeur": "HANGCHA", "parc": "I5023", "client": "JOHN COCKERILL", "validite": "2026-09-25", "lieu": "JOHN COCKERILL ENGRENIER USINAGE 13110 PORT DE BOUC", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "JOHN COCKERILL"}, {"id": 40, "libelle": "CHARIOT ELEVATEUR YALE GDP50MJ G5183", "type": "GDP50MJ E2214", "serie": "E813A02215C", "constructeur": "YALE", "parc": "G5183", "client": "JOHN COCKERILL", "validite": "2026-10-03", "lieu": "JOHN COKERILL LA MERINDOLE 13110 PORT DE BOUC", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "JOHN COCKERILL"}, {"id": 41, "libelle": "CHARIOT ELEVATEUR HANGCHA CPCD35 G5204", "type": "CPCD35 XW55F", "serie": "A5AI09079", "constructeur": "HANGCHA", "parc": "G5204", "client": "JOHN COCKERILL", "validite": "2026-10-03", "lieu": "JOHN COCKERILL LA FEUILLANE 2 13270 FOS SUR MER", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "JOHN COCKERILL"}, {"id": 42, "libelle": "GERBEUR 1600 KG UNICARRIERS G5193", "type": "A/160SDTFVSJN630", "serie": "AJN217218/04", "constructeur": "UNICARRIERS", "parc": "G5193", "client": "JOHN COCKERILL", "validite": "2026-10-03", "lieu": "JOHN COCKERILL FEUILLANE 2 ATELIER MECA 13270 FOS SUR MER", "freq": 12, "energy": "elec", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "JOHN COCKERILL"}, {"id": 43, "libelle": "GERBEUR 1450 KG HANGCHA G5201", "type": "CDD16 AEC1", "serie": "I8AH03475", "constructeur": "HANGCHA", "parc": "G5201", "client": "JOHN COCKERILL", "validite": "2026-10-03", "lieu": "JOHN COCKERILL LA FEUILLANE 2 13270 FOS SUR MER", "freq": 12, "energy": "elec", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "JOHN COCKERILL"}, {"id": 44, "libelle": "GERBEUR 1200 KG HANGCHA i5021", "type": "CDD12 AEC1", "serie": "I8AG02215", "constructeur": "HANGCHA", "parc": "i5021", "client": "JOHN COCKERILL", "validite": "2026-10-03", "lieu": "JOHN COCKERILL FEUILLANE 2 ATELIER MECA 13270 FOS SUR MER", "freq": 12, "energy": "elec", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "JOHN COCKERILL"}, {"id": 45, "libelle": "CHARIOT ELEVATEUR FENWICK H30T N°2742", "type": "H30T-03 Q", "serie": "H2X351M02742", "constructeur": "FENWICK-LINDE", "parc": "H30T N°2742", "client": "ART SOCIETE", "validite": "2026-10-07", "lieu": "ART SOCIETE 13270 FOS SUR MER", "freq": 12, "energy": "therm", "ownerType": "isseo", "ownerLabel": "🏢 Machine ISSEO", "contrat": "LLD", "locataire": "ART SOCIETE"}, {"id": 46, "libelle": "PORTIQUE MOBILE REMA CMI05 N°1301", "type": "PORTIQUE D ATELIER", "serie": "52842-09419", "constructeur": "REMA", "parc": "CMI05", "client": "JOHN COCKERILL", "validite": "2026-11-07", "lieu": "JOHN COCKERILL PDC 13270 FOS SUR MER", "freq": 12, "energy": "other", "ownerType": "client_machine", "ownerLabel": "👤 Machine client", "contrat": "MAINT", "locataire": ""}, {"id": 47, "libelle": "POTENCE TELESCOPIQUE STOCKMAN ARE30", "type": "ARE30", "serie": "240701610", "constructeur": "STOCKMAN", "parc": "ARE30 N°1610", "client": "SARM COMPOSITE", "validite": "2027-03-11", "lieu": "SARM COMPOSITE 13110 PORT DE BOUC", "freq": 12, "energy": "other", "ownerType": "client_machine", "ownerLabel": "👤 Machine client", "contrat": "MAINT", "locataire": ""}];
+
+// ── INIT ──
+let currentNum=null,currentMode='bureau',typeSelected='',pc=0;
+let photos=[],_P=0,_H=0,_HT=0,_TTC=0,selectedClientId=null,prixMode='show-all';
+
+async function getNextNum(){
+  try{
+    const r=await fetch(SHEET_URL+'?action=getNextNum');
+    const d=await r.json();
+    if(d.num)return d.num;
+  }catch(e){}
+  // Fallback local
+  const y=new Date().getFullYear(),key=`isseo_ri_${y}`;
+  let n=parseInt(localStorage.getItem(key)||'1878')+1;
+  localStorage.setItem(key,n);
+  return `RI-${y}-${String(n).padStart(4,'0')}`;
+}
+async function initNum(){currentNum=await getNextNum();document.getElementById('num-display').textContent=currentNum;genTechCode();}
+initNum();
+document.getElementById('date_inter').value=new Date().toISOString().split('T')[0];
+
+// ── PRIX SWITCH ──
+function setPrix(mode){
+  prixMode=mode;
+  document.querySelectorAll('.px-btn').forEach(b=>b.classList.remove('active','show-all','show-total','hide-all'));
+  document.querySelector('.px-btn.'+mode).classList.add('active',mode);
+  document.body.classList.remove('hide-prix','show-total-only');
+  if(mode==='hide-all')document.body.classList.add('hide-prix');
+  if(mode==='show-total')document.body.classList.add('show-total-only');
+  toast(mode==='show-all'?'Prix complets visibles':mode==='show-total'?'Total seul visible':'Prix masqués');
+}
+
+// ── MODE ──
+function setMode(mode){
+  currentMode=mode;
+  document.querySelectorAll('.ms-btn').forEach(b=>b.classList.remove('active','bureau','tech'));
+  (mode==='bureau'?document.querySelector('.ms-btn:first-child'):document.querySelector('.ms-btn:last-child')).classList.add('active',mode);
+  const mt=document.getElementById('mode-tag');
+  mt.textContent=mode==='bureau'?'🖥 BUREAU':'📱 TECHNICIEN';
+  mt.className='mode-tag '+mode;
+  document.getElementById('odoo-zone').style.display=mode==='bureau'?'':'none';
+  document.getElementById('tech-box').style.display=mode==='bureau'?'':'none';
+  document.getElementById('tech-load').style.display=mode==='tech'?'':'none';
+  ['client','site','cmd_client','mat_type','mat_serie','mat_int'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.readOnly=mode==='tech';el.classList.toggle('readonly-f',mode==='tech');}
+  });
+  toast(mode==='bureau'?'Mode Bureau':'Mode Technicien');
+}
+
+// ── TOGGLE ──
+function tog(head){
+  const closed=head.classList.toggle('closed');
+  let el=head.nextElementSibling;
+  while(el&&!el.classList.contains('card-head')){el.style.display=closed?'none':'';el=el.nextElementSibling;}
+}
+
+// ── TYPE ──
+function selType(btn){document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');typeSelected=btn.textContent.trim();updateProg();}
+
+// ── AUTOCOMPLETE CLIENT ──
+let suggTO=null;
+function searchClient(val){
+  const sugg=document.getElementById('client-sugg');
+  clearTimeout(suggTO);
+  if(val.length<2){sugg.style.display='none';return;}
+  suggTO=setTimeout(async()=>{
+    let results=[];
+    // D'abord essayer Google Sheets
+    try{
+      const r=await fetch(SHEET_URL+'?action=getClients&q='+encodeURIComponent(val));
+      const d=await r.json();
+      if(d.clients&&d.clients.length)results=d.clients;
+    }catch(e){}
+    // Fallback base locale v9
+    if(!results.length){
+      const q=val.toLowerCase();
+      results=DB_CLIENTS.filter(c=>c.nom&&c.nom.toLowerCase().includes(q)).slice(0,8)
+        .map(c=>({id:c.id,nom:c.nom,code:c.code||'',mo:c.mo||75,depl:c.depl||120}));
+    }
+    if(!results.length){sugg.style.display='none';return;}
+    sugg.innerHTML=results.map(c=>`
+      <div class="sugg-item" onmousedown="selectClient(${JSON.stringify(c).replace(/"/g,'&quot;')})">
+        <strong>${c.nom}</strong>
+        <small>Code: ${c.code||'—'} · MO: ${c.mo||75}€/h · Dépl: ${c.depl||120}€</small>
+      </div>`).join('');
+    sugg.style.display='block';
+  },150);
+}
+
+function selectClient(c){
+  if(typeof c==='string')c=JSON.parse(c.replace(/&quot;/g,'"'));
+  selectedClientId=c.id;
+  document.getElementById('client').value=c.nom;
+  document.getElementById('client').classList.add('ok');
+  document.getElementById('client-sugg').style.display='none';
+  document.getElementById('taux_mo').value=c.mo||75;
+  document.getElementById('forfait_dep').value=c.depl||120;
+  chargerMachines(c.nom);
+  calcTotaux();updateProg();
+  toast('✓ Client — tarifs chargés');
+}
+function hideSugg(){setTimeout(()=>document.getElementById('client-sugg').style.display='none',200);}
+
+async function chargerMachines(nomClient){
+  const sel=document.getElementById('machine-sel');
+  sel.innerHTML='<option value="">— Choisir une machine —</option>';
+  let machines=[];
+  // Sheets d'abord
+  try{
+    const r=await fetch(SHEET_URL+'?action=getMachines&client='+encodeURIComponent(nomClient));
+    const d=await r.json();
+    if(d.machines&&d.machines.length)machines=d.machines;
+  }catch(e){}
+  // Fallback v9
+  if(!machines.length){
+    const q=nomClient.toLowerCase().substring(0,6);
+    const vgp=VGP_INITIAL.filter(v=>(v.locataire||v.client||'').toLowerCase().includes(q));
+    vgp.forEach(v=>machines.push({type:v.type,serie:v.serie,parc:v.parc,marque:v.constructeur,source:'VGP'}));
+    const db=DB_MACHINES.filter(m=>(m.client||'').toLowerCase().includes(q)).slice(0,8);
+    db.forEach(m=>machines.push({type:m.type,serie:m.matricule||'',parc:'',marque:m.marque,source:'HIST'}));
+  }
+  machines.forEach(m=>{
+    const opt=document.createElement('option');
+    opt.value=JSON.stringify(m);
+    opt.textContent=`${m.marque||''} ${m.type||''}${m.serie?' ('+m.serie+')':''}${m.parc?' — '+m.parc:''}`;
+    sel.appendChild(opt);
+  });
+}
+
+function selMachine(sel){
+  if(!sel.value)return;
+  try{
+    const m=JSON.parse(sel.value);
+    if(m.type){document.getElementById('mat_type').value=m.type;document.getElementById('mat_type').classList.add('ok');}
+    if(m.serie){document.getElementById('mat_serie').value=m.serie;document.getElementById('mat_serie').classList.add('ok');}
+    if(m.parc)document.getElementById('mat_int').value=m.parc;
+    updateProg();toast('✓ Machine chargée');
+  }catch(e){}
+}
+
+// ── TECH CODE ──
+function genTechCode(){
+  const code=Math.random().toString(36).substring(2,8).toUpperCase();
+  document.getElementById('tech-code').textContent=code;
+  if(currentNum)localStorage.setItem('isseo_ri_code_'+currentNum,code);
+}
+function envoyerCode(){
+  const code=document.getElementById('tech-code').textContent;
+  window.open(`https://wa.me/?text=ISSEO%20–%20RI%20${currentNum}%0ACode%20:%20${code}%0ACharge%20le%20rapport%20sur%20ton%20téléphone.`,'_blank');
+  toast('Code envoyé');
+}
+function chargerRI(){
+  const code=document.getElementById('code-ri').value.toUpperCase().trim();
+  if(!code){toast('⚠ Entrez un code',true);return;}
+  const stored=localStorage.getItem('isseo_ri_data_'+code);
+  if(stored){
+    const data=JSON.parse(stored);
+    if(data.client)document.getElementById('client').value=data.client;
+    if(data.site)document.getElementById('site').value=data.site;
+    if(data.materiel){
+      if(data.materiel.type)document.getElementById('mat_type').value=data.materiel.type;
+      if(data.materiel.serie)document.getElementById('mat_serie').value=data.materiel.serie;
+      if(data.materiel.interne)document.getElementById('mat_int').value=data.materiel.interne;
+    }
+    if(data.objet){document.getElementById('objet').value=data.objet;document.getElementById('ai-objet').disabled=false;}
+    if(data.typeSelected){document.querySelectorAll('.tbtn').forEach(b=>{if(b.textContent.trim()===data.typeSelected)b.classList.add('sel');});typeSelected=data.typeSelected;}
+    if(data.pieces&&data.pieces.length){
+      data.pieces.forEach(p=>{
+        addPiece(true);
+        const rows=document.querySelectorAll('.piece-data-row');
+        const last=rows[rows.length-1];
+        if(last){const inp=last.querySelectorAll('input');
+          if(inp[0])inp[0].value=p.ref||'';
+          if(inp[1])inp[1].value=p.designation||'';
+          if(inp[2])inp[2].value=p.qte||'';
+          if(inp[3])inp[3].value=p.pu||'';}
+      });calcPieces();
+    }
+    updateProg();toast('✓ RI chargé');
+  }else toast('⚠ Code non trouvé',true);
+}
+
+// ── ODOO IMPORT ──
+async function importerOdoo(input){
+  const file=input.files[0];if(!file)return;
+  const st=document.getElementById('odoo-st'),stTxt=document.getElementById('odoo-st-txt');
+  st.style.display='flex';stTxt.textContent='Lecture du devis Odoo…';
+  const b64=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.readAsDataURL(file);});
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,
+        messages:[{role:'user',content:[
+          {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},
+          {type:'text',text:'Analyse ce devis Odoo. Réponds UNIQUEMENT en JSON valide: {"client":"","site":"","num_commande":"","materiel_type":"","materiel_serie":"","objet":"","pieces":[{"ref":"","designation":"","qte":1,"pu":0}],"total_ht":0}'}
+        ]}]})});
+    const data=await resp.json();
+    const parsed=JSON.parse(data.content?.[0]?.text.replace(/```json|```/g,'').trim()||'{}');
+    if(parsed.client){document.getElementById('client').value=parsed.client;document.getElementById('client').classList.add('ok');chargerMachines(parsed.client);}
+    if(parsed.site)document.getElementById('site').value=parsed.site;
+    if(parsed.num_commande)document.getElementById('cmd_client').value=parsed.num_commande;
+    if(parsed.materiel_type){document.getElementById('mat_type').value=parsed.materiel_type;document.getElementById('mat_type').classList.add('ok');}
+    if(parsed.materiel_serie){document.getElementById('mat_serie').value=parsed.materiel_serie;document.getElementById('mat_serie').classList.add('ok');}
+    if(parsed.objet){document.getElementById('objet').value=parsed.objet;document.getElementById('ai-objet').disabled=false;}
+    if(parsed.pieces&&parsed.pieces.length){
+      parsed.pieces.forEach(p=>{addPiece();
+        const rows=document.querySelectorAll('.piece-data-row');
+        const last=rows[rows.length-1];
+        if(last){const inp=last.querySelectorAll('input');
+          if(inp[0])inp[0].value=p.ref||'';if(inp[1])inp[1].value=p.designation||'';
+          if(inp[2])inp[2].value=p.qte||'';if(inp[3])inp[3].value=p.pu||'';}
+      });calcPieces();
+    }
+    // Cohérence
+    const odooHT=parsed.total_ht||0;
+    const alert=document.getElementById('coher-alert');
+    if(odooHT>0){
+      alert.style.display='block';
+      const diff=Math.abs(_HT-odooHT),pct=odooHT>0?(diff/odooHT)*100:0;
+      if(pct<5){alert.className='coher-alert ok-c';alert.textContent=`✓ Cohérent avec le devis Odoo (${fmt(odooHT)} HT)`;}
+      else{alert.className='coher-alert warn';alert.textContent=`⚠ Écart : Devis ${fmt(odooHT)} HT — RI ${fmt(_HT)} HT (diff. ${fmt(diff)})`;}
+    }
+    stTxt.textContent='✓ Devis importé';stTxt.style.color='var(--ok)';
+    updateProg();toast('✓ Devis Odoo importé');
+  }catch(e){stTxt.textContent='⚠ Lecture échouée';stTxt.style.color='var(--danger)';toast('⚠ Import échoué',true);}
+  input.value='';
+}
+
+// ── SCAN PLAQUE ──
+async function analyserPlaque(input){
+  const file=input.files[0];if(!file)return;
+  const rd=document.getElementById('ai-reading');rd.style.display='flex';
+  const b64=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.readAsDataURL(file);});
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:file.type,data:b64}},
+          {type:'text',text:'Analyse cette plaque de chariot élévateur. Extrais type/modèle, numéro de série, horamètre. JSON uniquement: {"type":"","serie":"","horametre":""}'}
+        ]}]})});
+    const data=await resp.json();
+    const parsed=JSON.parse(data.content?.[0]?.text.replace(/```json|```/g,'').trim()||'{}');
+    if(parsed.type){document.getElementById('mat_type').value=parsed.type;document.getElementById('mat_type').classList.add('ok');}
+    if(parsed.serie){document.getElementById('mat_serie').value=parsed.serie;document.getElementById('mat_serie').classList.add('ok');}
+    if(parsed.horametre)document.getElementById('horametre').value=parsed.horametre;
+    toast('✓ Plaque lue');
+  }catch(e){toast('⚠ Lecture échouée',true);}
+  rd.style.display='none';input.value='';
+}
+
+// ── PHOTOS ──
+function ajouterPhoto(input){
+  const file=input.files[0];if(!file)return;
+  if(photos.length>=5){toast('⚠ Max 5 photos',true);return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const cv=document.createElement('canvas');
+      let w=img.width,h=img.height;
+      if(w>800){h=h*800/w;w=800;}if(h>600){w=w*600/h;h=600;}
+      cv.width=w;cv.height=h;cv.getContext('2d').drawImage(img,0,0,w,h);
+      photos.push({id:'ph'+Date.now(),data:cv.toDataURL('image/jpeg',.7),caption:''});
+      renderPhotos();toast('📷 Photo ajoutée');
+    };img.src=e.target.result;
+  };reader.readAsDataURL(file);input.value='';
+}
+function renderPhotos(){
+  const grid=document.getElementById('photos-grid');grid.innerHTML='';
+  photos.forEach(p=>{
+    const div=document.createElement('div');div.className='ph-thumb';
+    div.innerHTML=`<img src="${p.data}"><button class="ph-del" onclick="delPhoto('${p.id}')">×</button><div class="ph-cap"><input type="text" placeholder="Légende…" value="${p.caption}" onchange="updateCap('${p.id}',this.value)"></div>`;
+    grid.appendChild(div);
+  });
+  document.getElementById('ph-note').textContent=`${photos.length} / 5 photos · Compression auto`;
+  document.getElementById('btn-add-ph').style.display=photos.length>=5?'none':'flex';
+}
+function delPhoto(id){photos=photos.filter(p=>p.id!==id);renderPhotos();}
+function updateCap(id,val){const p=photos.find(x=>x.id===id);if(p)p.caption=val;}
+
+// ── PIÈCES ──
+const PROVS=['SAV','VEH','ATL','CMD'];
+const PROV_LBL={'SAV':'🔧 SAV','VEH':'🚐 Véhicule','ATL':'🏭 Atelier','CMD':'📦 Commande'};
+function addPiece(locked=false){
+  pc++;
+  const div=document.createElement('div');
+  div.className='piece-card piece-data-row';div.id=`p${pc}`;
+  div.innerHTML=`
+    <button class="btn-del-card" onclick="delP('p${pc}')">×</button>
+    <div class="piece-card-row1">
+      <div>
+        <label>Référence</label>
+        <input type="text" placeholder="REF001" ${locked?'readonly class="readonly-f"':''}>
+      </div>
+      <div>
+        <label>Désignation</label>
+        <input type="text" placeholder="Description de la pièce" ${locked?'readonly class="readonly-f"':''}>
+      </div>
+    </div>
+    <div class="piece-card-row2">
+      <div>
+        <label>Quantité</label>
+        <input type="number" placeholder="1" min="0" class="qte" oninput="calcPieces()">
+      </div>
+      <div class="prix-col detail">
+        <label>Prix unitaire HT</label>
+        <input type="number" placeholder="0.00" min="0" step="0.01" class="pu" oninput="calcPieces()">
+      </div>
+      <div class="prix-col detail">
+        <label class="piece-total-lbl">Total HT</label>
+        <div class="piece-total" id="pt${pc}">—</div>
+      </div>
+    </div>
+    <div class="piece-card-row3">
+      <div style="flex:1">
+        <label>Provenance</label>
+        <select class="prov-sel">${PROVS.map(p=>`<option value="${p}">${PROV_LBL[p]}</option>`).join('')}</select>
+      </div>
+    </div>`;
+  document.getElementById('pieces-body').appendChild(div);
+}
+function delP(id){document.getElementById(id)?.remove();calcPieces();}
+function calcPieces(){
+  let tot=0;
+  document.querySelectorAll('.piece-data-row').forEach(row=>{
+    const q=parseFloat(row.querySelector('.qte')?.value)||0,p=parseFloat(row.querySelector('.pu')?.value)||0,t=q*p;tot+=t;
+    const tc=row.querySelector('[id^="pt"]');if(tc)tc.textContent=t>0?fmt(t):'—';
+  });
+  _P=tot;calcTotaux();
+}
+
+// ── TEMPS ──
+function calcTemps(){
+  const dep=document.getElementById('h_dep').value,arr=document.getElementById('h_arr').value,fin=document.getElementById('h_fin').value;
+  if(dep&&fin){
+    const tm=s=>{const[h,m]=s.split(':').map(Number);return h*60+m;};
+    const tot=tm(fin)-tm(dep),route=arr?Math.max(tm(arr)-tm(dep),0):0,inter=Math.max(tot-route,0);
+    document.getElementById('disp-route').textContent=fmtH(route);
+    document.getElementById('disp-inter').textContent=fmtH(inter);
+    _H=inter/60;
+  }
+  calcTotaux();
+}
+function fmtH(m){const h=Math.floor(m/60),mn=m%60;return `${h}h${String(mn).padStart(2,'0')}`;}
+function calcTotaux(){
+  const h=_H||0,tmo=parseFloat(document.getElementById('taux_mo').value)||75;
+  const pieces=_P||0,depFact=parseInt(document.getElementById('dep_fact').value);
+  const forfait=parseFloat(document.getElementById('forfait_dep').value)||0;
+  const dep=depFact?forfait:0;
+  document.getElementById('disp-dep').textContent=depFact?'Oui':'Non';
+  const mo=h*tmo,ht=pieces+mo+dep,tva=ht*.20,ttc=ht+tva;
+  document.getElementById('t-p').textContent=fmt(pieces);
+  document.getElementById('t-mo').textContent=fmt(mo);
+  document.getElementById('t-d').textContent=fmt(dep);
+  document.getElementById('t-ht').textContent=fmt(ht);
+  document.getElementById('t-tva').textContent=fmt(tva);
+  document.getElementById('t-ttc').textContent=fmt(ttc);
+  _HT=ht;_TTC=ttc;updateProg();
+}
+function fmt(n){return n.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';}
+
+// ── VOICE ──
+let recognition=null;
+function startVoice(fieldId,btn){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){toast('⚠ Micro non supporté sur ce navigateur',true);return;}
+  if(recognition){recognition.stop();return;}
+  recognition=new SR();recognition.lang='fr-FR';recognition.continuous=false;recognition.interimResults=true;
+  btn.classList.add('recording');btn.textContent='⏹ Arrêter';
+  recognition.onresult=e=>{
+    let txt='';for(let i=e.resultIndex;i<e.results.length;i++)txt+=e.results[i][0].transcript;
+    document.getElementById(fieldId).value=txt;
+    const ai=document.getElementById('ai-'+fieldId);if(ai)ai.disabled=false;
+    chk(document.getElementById(fieldId));
+  };
+  recognition.onend=()=>{btn.classList.remove('recording');btn.textContent='🎤 Dicter';recognition=null;};
+  recognition.onerror=()=>{btn.classList.remove('recording');btn.textContent='🎤 Dicter';toast('⚠ Erreur micro',true);};
+  recognition.start();
+}
+
+// ── IA REFORMULER ──
+async function reformulerIA(fieldId){
+  const field=document.getElementById(fieldId);const txt=field.value.trim();if(!txt)return;
+  const btn=document.getElementById('ai-'+fieldId);btn.innerHTML='<div class="spin"></div>';btn.disabled=true;
+  const prompts={
+    objet:`SAV chariots élévateurs. Reformule ce diagnostic en 1-2 phrases professionnelles concises. Texte: "${txt}"`,
+    travaux:`SAV chariots élévateurs. Reformule ces travaux réalisés en 2-3 phrases professionnelles concises. Texte: "${txt}"`,
+    a_prevoir:`SAV chariots élévateurs. Reformule ces travaux à prévoir en 1-2 phrases concises. Texte: "${txt}"`
+  };
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:150,messages:[{role:'user',content:prompts[fieldId]}]})});
+    const data=await resp.json();const result=data.content?.[0]?.text;
+    if(result){field.value=result.trim();field.classList.add('ok');toast('✨ Texte reformulé');}
+    else toast('⚠ Erreur IA',true);
+  }catch(e){toast('⚠ IA indisponible',true);}
+  btn.innerHTML='✨ Reformuler';btn.disabled=false;
+}
+
+// ── SIGNATURES ──
+['c1','c2'].forEach(id=>{
+  const cv=document.getElementById(id),ctx=cv.getContext('2d'),dpr=window.devicePixelRatio||1;
+  cv.width=cv.offsetWidth*dpr;cv.height=cv.offsetHeight*dpr;ctx.scale(dpr,dpr);
+  let draw=false,lx=0,ly=0;
+  const pos=e=>{const r=cv.getBoundingClientRect(),s=e.touches?e.touches[0]:e;return{x:s.clientX-r.left,y:s.clientY-r.top};};
+  cv.addEventListener('mousedown',e=>{draw=true;const p=pos(e);lx=p.x;ly=p.y;});
+  cv.addEventListener('mousemove',e=>{if(!draw)return;const p=pos(e);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(p.x,p.y);ctx.strokeStyle='#4A4A4A';ctx.lineWidth=1.8;ctx.lineCap='round';ctx.stroke();lx=p.x;ly=p.y;});
+  cv.addEventListener('mouseup',()=>draw=false);
+  cv.addEventListener('touchstart',e=>{e.preventDefault();draw=true;const p=pos(e);lx=p.x;ly=p.y;},{passive:false});
+  cv.addEventListener('touchmove',e=>{e.preventDefault();if(!draw)return;const p=pos(e);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(p.x,p.y);ctx.strokeStyle='#4A4A4A';ctx.lineWidth=1.8;ctx.lineCap='round';ctx.stroke();lx=p.x;ly=p.y;},{passive:false});
+  cv.addEventListener('touchend',()=>draw=false);
+});
+function clearSig(id){const cv=document.getElementById(id);cv.getContext('2d').clearRect(0,0,cv.width,cv.height);}
+
+// ── PROGRESS ──
+function chk(el){if(el?.value){el.classList.add('ok');const ai=document.getElementById('ai-'+el.id);if(ai)ai.disabled=false;}else el?.classList.remove('ok');updateProg();}
+function updateProg(){
+  const ids=['date_inter','tech_sel','client','mat_type','mat_serie','objet','travaux'];
+  let s=0;ids.forEach(id=>{if(document.getElementById(id)?.value)s+=12;});if(typeSelected)s+=16;
+  s=Math.min(s,100);document.getElementById('prog').style.width=s+'%';
+}
+
+// ── VALIDER & SAUVEGARDER ──
+async function valider(){
+  const r={date_inter:'Date',tech_sel:'Technicien',client:'Client',mat_type:'Type matériel',mat_serie:'N° de série',objet:'Objet',travaux:'Travaux effectués'};
+  for(const[id,lab] of Object.entries(r)){if(!document.getElementById(id)?.value){toast('⚠ '+lab+' obligatoire',true);return;}}
+  if(!typeSelected){toast('⚠ Type d\'intervention obligatoire',true);return;}
+
+  const data=getFormData();
+
+  // Sauvegarder localement pour accès tech
+  const code=document.getElementById('tech-code').textContent;
+  localStorage.setItem('isseo_ri_data_'+code,JSON.stringify(data));
+
+  // Envoyer au Google Sheets
+  try{
+    const resp=await fetch(SHEET_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'saveRapport',data:data})
+    });
+    const result=await resp.json();
+    if(result.status==='ok'){
+      toast('✓ RI '+currentNum+' validé et enregistré dans Sheets');
+    }else{
+      toast('✓ RI validé — Sheets: '+result.message);
+    }
+  }catch(e){
+    toast('✓ RI validé — enregistrement Sheets échoué');
+  }
+
+  const st=document.getElementById('status-txt');st.textContent='● VALIDÉ';st.classList.add('ok');
+}
+
+// ── EXPORT JSON ──
+function getFormData(){
+  const pieces=[];
+  document.querySelectorAll('.piece-data-row').forEach(row=>{
+    const inp=row.querySelectorAll('input');const prov=row.querySelector('.prov-sel')?.value||'SAV';
+    // Card layout: inp[0]=ref, inp[1]=designation, inp[2]=qte, inp[3]=pu
+    if(inp[0]?.value||inp[1]?.value)pieces.push({ref:inp[0]?.value||'',designation:inp[1]?.value||'',qte:inp[2]?.value||'',pu:inp[3]?.value||'',provenance:prov});
+  });
+  return{
+    numero:currentNum,date:document.getElementById('date_inter').value,
+    technicien:document.getElementById('tech_sel').value,client:document.getElementById('client').value,
+    site:document.getElementById('site').value,type:typeSelected,
+    num_contrat:document.getElementById('num_contrat').value,
+    materiel:{type:document.getElementById('mat_type').value,serie:document.getElementById('mat_serie').value,interne:document.getElementById('mat_int').value,horametre:document.getElementById('horametre').value},
+    objet:document.getElementById('objet').value,travaux:document.getElementById('travaux').value,
+    a_prevoir:document.getElementById('a_prevoir').value,pieces,
+    photos:photos.map(p=>({id:p.id,caption:p.caption})),
+    temps:{depart:document.getElementById('h_dep').value,arrivee:document.getElementById('h_arr').value,fin:document.getElementById('h_fin').value,km:document.getElementById('km').value},
+    pointage:{taux_mo:document.getElementById('taux_mo').value,forfait_dep:document.getElementById('forfait_dep').value,dep_facture:document.getElementById('dep_fact').value,tps_inter:_H},
+    totaux:{ht:_HT,ttc:_TTC},prix_mode:prixMode,
+    signataire:{nom:document.getElementById('sig_nom').value,fonction:document.getElementById('sig_fn').value},
+    remarques:document.getElementById('remarques').value,
+    created:new Date().toISOString()
+  };
+}
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(getFormData(),null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=currentNum+'.json';a.click();
+  toast('Export : '+currentNum);
+}
+
+// ── RESET ──
+function resetForm(){
+  if(!confirm('Réinitialiser ?'))return;
+  document.querySelectorAll('input,textarea').forEach(el=>{if(el.type!='file'){el.value='';el.classList.remove('ok','readonly-f');}});
+  document.querySelectorAll('select').forEach(el=>el.selectedIndex=0);
+  document.getElementById('pieces-body').innerHTML='';
+  document.getElementById('taux_mo').value='75';document.getElementById('forfait_dep').value='120';
+  document.getElementById('date_inter').value=new Date().toISOString().split('T')[0];
+  document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('sel'));
+  photos=[];renderPhotos();typeSelected='';pc=0;_P=0;_H=0;selectedClientId=null;
+  ['t-p','t-mo','t-d','t-ht','t-tva'].forEach(id=>document.getElementById(id).textContent='0,00 €');
+  document.getElementById('t-ttc').textContent='0,00 €';
+  ['disp-route','disp-inter'].forEach(id=>document.getElementById(id).textContent='—');
+  document.getElementById('disp-dep').textContent='—';
+  document.getElementById('coher-alert').style.display='none';
+  document.getElementById('odoo-st').style.display='none';
+  ['c1','c2'].forEach(clearSig);
+  ['ai-objet','ai-travaux','ai-prevoir'].forEach(id=>{const b=document.getElementById(id);if(b){b.disabled=true;b.innerHTML='✨ Reformuler';}});
+  const st=document.getElementById('status-txt');st.textContent='● BROUILLON';st.classList.remove('ok');
+  setPrix('show-all');setMode('bureau');initNum();updateProg();toast('Réinitialisé');
+}
+
+// ── TOAST ──
+function toast(msg,warn=false){
+  const t=document.getElementById('toast');t.textContent=msg;
+  t.style.borderLeftColor=warn?'var(--danger)':'var(--teal)';
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+updateProg();
+</script>
+</body>
+</html>
