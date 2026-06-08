@@ -103,14 +103,18 @@ body { font-family: Arial, sans-serif; font-size: 11px; color: #222; background:
 /* SCREEN ACTIONS */
 .print-actions { position: fixed; bottom: 16px; right: 16px; display: flex; gap: 8px; z-index: 100; }
 .btn-print { padding: 12px 20px; border-radius: 8px; border: none; background: #EA7807; color: white; font-weight: bold; font-size: 14px; cursor: pointer; box-shadow: 0 3px 12px rgba(0,0,0,.2); }
-.btn-close { padding: 12px 16px; border-radius: 8px; border: none; background: #4A4A4A; color: white; font-weight: bold; font-size: 14px; cursor: pointer; }
+.btn-close { padding: 12px 14px; border-radius: 8px; border: none; background: #4A4A4A; color: white; font-weight: bold; font-size: 14px; cursor: pointer; }
+.btn-email { padding: 12px 16px; border-radius: 8px; border: none; background: #3AB6AD; color: white; font-weight: bold; font-size: 14px; cursor: pointer; }
+.btn-share { padding: 12px 16px; border-radius: 8px; border: none; background: #7C3AED; color: white; font-weight: bold; font-size: 14px; cursor: pointer; }
 </style>
 </head>
 <body>
 
 <div class="print-actions no-print">
-  <button class="btn-close" onclick="window.close()">✕ Fermer</button>
-  <button class="btn-print" onclick="window.print()">🖨 Enregistrer PDF</button>
+  <button class="btn-close" onclick="window.close()">✕</button>
+  <button class="btn-share" onclick="partager()" id="btn-share" style="display:none">📤 Partager</button>
+  <button class="btn-email" onclick="envoyerEmail()">📧 Email</button>
+  <button class="btn-print" onclick="imprimerEtPartager()">🖨 PDF</button>
 </div>
 
 <div id="rapport-content">
@@ -315,7 +319,111 @@ function renderRapport(d) {
 
   document.getElementById('rapport-content').innerHTML = html;
   document.title = 'ISSEO – ' + (d.numero||'RI');
+  
+  // Afficher bouton partage si disponible
+  if(navigator.share || navigator.canShare){
+    document.getElementById('btn-share').style.display='block';
+  }
 }
+
+// ── IMPRESSION + PARTAGE ──
+async function imprimerEtPartager(){
+  // Sauvegarder le PDF via print dialog
+  window.print();
+  // Après impression, proposer partage si disponible
+  setTimeout(()=>{
+    if(navigator.share){
+      document.getElementById('btn-share').style.display='block';
+      document.getElementById('btn-share').style.animation='pulse 1s 3';
+    }
+  }, 2000);
+}
+
+// ── EMAIL ──
+function envoyerEmail(){
+  const d = JSON.parse(localStorage.getItem('isseo_print_data')||'{}');
+  const num = d.numero||'—';
+  const client = d.client||'Client';
+  const tech = d.technicien||'—';
+  const date = d.date||'—';
+  const type = d.type||'—';
+  const materiel = (d.materiel?.type||'') + (d.materiel?.serie?' ('+d.materiel.serie+')':'');
+  const objet = d.objet||'—';
+  const travaux = d.travaux||'—';
+  const ttc = d.totaux?.ttc ? parseFloat(d.totaux.ttc).toLocaleString('fr-FR',{minimumFractionDigits:2})+'€ TTC' : '—';
+  const km = d.temps?.km||'—';
+  const duree = d.pointage?.tps_inter ? Math.floor(d.pointage.tps_inter)+'h'+String(Math.round((d.pointage.tps_inter%1)*60)).padStart(2,'0') : '—';
+
+  // Destinataires
+  const toIsseo = 'contact@isseochariot.fr';
+  const toClient = d.client_email || ''; // si email client renseigné
+  const to = toClient ? toIsseo+','+toClient : toIsseo;
+
+  const sujet = encodeURIComponent(`Rapport d'intervention ISSEO – ${num} – ${client}`);
+  const corps = encodeURIComponent(
+`Bonjour,
+
+Veuillez trouver ci-joint le rapport d'intervention N° ${num}.
+
+──────────────────────────
+RAPPORT D'INTERVENTION ISSEO
+──────────────────────────
+N° Avis        : ${num}
+Date           : ${date}
+Client         : ${client}
+Technicien     : ${tech}
+Type           : ${type}
+Matériel       : ${materiel}
+
+INTERVENTION
+Objet          : ${objet}
+Travaux        : ${travaux}
+Durée          : ${duree}
+Km             : ${km} km
+Total          : ${ttc}
+──────────────────────────
+
+Ce rapport a été généré et signé électroniquement.
+
+Cordialement,
+ISSEO Chariots Élévateurs
+Tél : 06 07 08 69 58 · 04 42 06 70 14
+contact@isseochariot.fr
+www.isseochariot.fr`
+  );
+
+  window.location.href = `mailto:${to}?subject=${sujet}&body=${corps}`;
+}
+
+// ── PARTAGE NATIF ──
+async function partager(){
+  const d = JSON.parse(localStorage.getItem('isseo_print_data')||'{}');
+  const num = d.numero||'RI';
+  const client = d.client||'Client';
+  
+  try {
+    // Essayer de partager la page comme URL
+    if(navigator.share){
+      await navigator.share({
+        title: `Rapport ISSEO – ${num} – ${client}`,
+        text: `Rapport d'intervention ISSEO N° ${num}
+Client : ${client}
+Date : ${d.date||'—'}
+Type : ${d.type||'—'}
+Travaux : ${d.travaux||'—'}`,
+        url: window.location.href
+      });
+    }
+  } catch(e){
+    // Fallback si partage annulé
+    if(e.name !== 'AbortError') alert('Partage non disponible sur cet appareil');
+  }
+}
+
+// CSS animation pulse pour indiquer le bouton partage
+const style = document.createElement('style');
+style.textContent = '@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }';
+document.head.appendChild(style);
 </script>
 </body>
 </html>
