@@ -155,6 +155,19 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .btn-del{background:none;border:none;color:#ccc;cursor:pointer;font-size:16px;padding:0 2px;}
 .btn-del:hover{color:var(--danger);}
 
+
+/* PIÈCES CARTE MOBILE */
+.piece-card{background:var(--gl);border-radius:8px;border:1px solid var(--gb);margin-bottom:8px;overflow:hidden;}
+.piece-card-inner{padding:10px;}
+.piece-line-1{display:flex;gap:6px;align-items:center;margin-bottom:8px;}
+.piece-line-1 input{font-size:13px;padding:8px 10px;}
+.piece-line-2{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;}
+.piece-mini-f{display:flex;flex-direction:column;gap:3px;}
+.piece-mini-f label{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mu);}
+.piece-mini-f input,.piece-mini-f select{font-size:12px;padding:7px 6px;border-radius:5px;}
+.p-tot{background:white;border:1.5px solid var(--gb);border-radius:6px;padding:7px 6px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--gd);text-align:center;}
+@media(max-width:400px){.piece-line-2{grid-template-columns:1fr 1fr;}}
+
 /* PRIX MASQUÉS */
 body.hide-prix .prix-col{display:none;}
 body.show-total-only .prix-col.detail{display:none;}
@@ -377,12 +390,6 @@ canvas{display:block;width:100%;height:85px;cursor:crosshair;touch-action:none;b
   <div class="card">
     <div class="card-head" onclick="tog(this)"><div class="ca t"></div><h2>6 — Fournitures & Pièces</h2><span class="chev">▼</span></div>
     <div class="pw" style="padding-top:10px">
-      <div class="piece-hd">
-        <span>Référence</span><span>Désignation</span><span style="text-align:right">Qté</span>
-        <span class="prix-col detail" style="text-align:right">PU HT</span>
-        <span class="prix-col detail" style="text-align:right">Tot. HT</span>
-        <span>Provenance</span><span></span>
-      </div>
       <div id="pieces-body"></div>
       <button class="btn-add" onclick="addPiece()">+ Ajouter une pièce</button>
     </div>
@@ -394,15 +401,10 @@ canvas{display:block;width:100%;height:85px;cursor:crosshair;touch-action:none;b
 
     <!-- Heures — visibles client -->
     <div class="heures-grid">
-      <div class="f"><label>Départ dépôt</label><input type="time" id="h_dep" oninput="calcTemps()"></div>
-      <div class="f"><label>Arrivée client</label><input type="time" id="h_arr" oninput="calcTemps()"></div>
-      <div class="f"><label>Fin intervention</label><input type="time" id="h_fin" oninput="calcTemps()"></div>
+      <div class="f"><label>Heure départ</label><input type="time" id="h_dep" oninput="calcTemps()"></div>
+      <div class="f"><label>Heure fin</label><input type="time" id="h_fin" oninput="calcTemps()"></div>
       <div class="f"><label>Km parcourus</label><input type="number" id="km" placeholder="Ex : 47" min="0" oninput="chk(this)"></div>
-    </div>
-    <div class="heures-result">
-      <div class="h-val"><span class="h-lbl">Tps route</span><span class="h-num" id="disp-route">—</span></div>
-      <div class="h-val teal"><span class="h-lbl">Tps intervention</span><span class="h-num" id="disp-inter">—</span></div>
-      <div class="h-val"><span class="h-lbl">Déplacement</span><span class="h-num" id="disp-dep">—</span></div>
+      <div class="h-val teal" style="align-self:flex-end"><span class="h-lbl">Durée</span><span class="h-num" id="disp-inter">—</span></div>
     </div>
 
     <!-- Zone confidentielle — montants masqués -->
@@ -511,10 +513,7 @@ function setMode(mode){
   document.getElementById('odoo-zone').style.display=mode==='bureau'?'':'none';
   document.getElementById('tech-box').style.display=mode==='bureau'?'':'none';
   document.getElementById('tech-load').style.display=mode==='tech'?'':'none';
-  ['client','site','cmd_client','mat_type','mat_serie','mat_int'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el){el.readOnly=mode==='tech';el.classList.toggle('readonly-f',mode==='tech');}
-  });
+  // Tech peut tout saisir - pas de readonly
   toast(mode==='bureau'?'Mode Bureau':'Mode Technicien');
 }
 
@@ -640,11 +639,12 @@ function chargerRI(){
         addPiece(true);
         const rows=document.querySelectorAll('.piece-data-row');
         const last=rows[rows.length-1];
-        if(last){const inp=last.querySelectorAll('input');
-          if(inp[0])inp[0].value=p.ref||'';
-          if(inp[1])inp[1].value=p.designation||'';
-          if(inp[2])inp[2].value=p.qte||'';
-          if(inp[3])inp[3].value=p.pu||'';}
+        if(last){
+          const ref=last.querySelector('.p-ref');if(ref)ref.value=p.ref||'';
+          const des=last.querySelector('.p-des');if(des)des.value=p.designation||'';
+          const qte=last.querySelector('.qte');if(qte)qte.value=p.qte||'';
+          const pu=last.querySelector('.pu');if(pu)pu.value=p.pu||'';
+        }
       });calcPieces();
     }
     updateProg();toast('✓ RI chargé');
@@ -753,15 +753,21 @@ const PROVS=['SAV','VEH','ATL','CMD'];
 const PROV_LBL={'SAV':'🔧 SAV','VEH':'🚐 Véhicule','ATL':'🏭 Atelier','CMD':'📦 Commande'};
 function addPiece(locked=false){
   pc++;
-  const div=document.createElement('div');div.className='piece-row piece-data-row';div.id=`p${pc}`;
+  const div=document.createElement('div');div.className='piece-card piece-data-row';div.id=`p${pc}`;
   div.innerHTML=`
-    <input type="text" placeholder="REF" ${locked?'readonly class="readonly-f"':''}>
-    <input type="text" placeholder="Désignation" ${locked?'readonly class="readonly-f"':''}>
-    <input type="number" placeholder="1" min="0" class="qte" style="text-align:right" oninput="calcPieces()">
-    <input type="number" placeholder="0.00" min="0" step="0.01" class="pu prix-col detail" style="text-align:right" oninput="calcPieces()">
-    <span class="tc prix-col detail" id="pt${pc}">—</span>
-    <select class="prov-sel">${PROVS.map(p=>`<option value="${p}">${PROV_LBL[p]}</option>`).join('')}</select>
-    <button class="btn-del" onclick="delP('p${pc}')">×</button>`;
+    <div class="piece-card-inner">
+      <div class="piece-line-1">
+        <input type="text" placeholder="Référence" class="p-ref" ${locked?'readonly':''} style="flex:0 0 100px">
+        <input type="text" placeholder="Désignation de la pièce" class="p-des" ${locked?'readonly':''} style="flex:1">
+        <button class="btn-del" onclick="delP('p${pc}')">×</button>
+      </div>
+      <div class="piece-line-2">
+        <div class="piece-mini-f"><label>Qté</label><input type="number" placeholder="1" min="0" class="qte" oninput="calcPieces()"></div>
+        <div class="piece-mini-f prix-col detail"><label>PU HT €</label><input type="number" placeholder="0.00" min="0" step="0.01" class="pu" oninput="calcPieces()"></div>
+        <div class="piece-mini-f prix-col detail"><label>Total HT</label><div class="p-tot" id="pt${pc}">—</div></div>
+        <div class="piece-mini-f"><label>Provenance</label><select class="prov-sel">${PROVS.map(p=>`<option value="${p}">${PROV_LBL[p]}</option>`).join('')}</select></div>
+      </div>
+    </div>`;
   document.getElementById('pieces-body').appendChild(div);
 }
 function delP(id){document.getElementById(id)?.remove();calcPieces();}
@@ -769,18 +775,17 @@ function calcPieces(){
   let tot=0;
   document.querySelectorAll('.piece-data-row').forEach(row=>{
     const q=parseFloat(row.querySelector('.qte')?.value)||0,p=parseFloat(row.querySelector('.pu')?.value)||0,t=q*p;tot+=t;
-    const tc=row.querySelector('[id^="pt"]');if(tc)tc.textContent=t>0?fmt(t):'—';
+    const tc=row.querySelector('.p-tot,[id^="pt"]');if(tc)tc.textContent=t>0?fmt(t):'—';
   });
   _P=tot;calcTotaux();
 }
 
 // ── TEMPS ──
 function calcTemps(){
-  const dep=document.getElementById('h_dep').value,arr=document.getElementById('h_arr').value,fin=document.getElementById('h_fin').value;
+  const dep=document.getElementById('h_dep').value,fin=document.getElementById('h_fin').value;
   if(dep&&fin){
     const tm=s=>{const[h,m]=s.split(':').map(Number);return h*60+m;};
-    const tot=tm(fin)-tm(dep),route=arr?Math.max(tm(arr)-tm(dep),0):0,inter=Math.max(tot-route,0);
-    document.getElementById('disp-route').textContent=fmtH(route);
+    let inter=tm(fin)-tm(dep);if(inter<0)inter+=1440;
     document.getElementById('disp-inter').textContent=fmtH(inter);
     _H=inter/60;
   }
@@ -901,8 +906,12 @@ async function valider(){
 function getFormData(){
   const pieces=[];
   document.querySelectorAll('.piece-data-row').forEach(row=>{
-    const inp=row.querySelectorAll('input');const prov=row.querySelector('.prov-sel')?.value||'SAV';
-    if(inp[0]?.value||inp[1]?.value)pieces.push({ref:inp[0].value,designation:inp[1].value,qte:inp[2].value,pu:inp[3].value,provenance:prov});
+    const ref=row.querySelector('.p-ref')?.value||'';
+    const des=row.querySelector('.p-des')?.value||'';
+    const qte=row.querySelector('.qte')?.value||'';
+    const pu=row.querySelector('.pu')?.value||'';
+    const prov=row.querySelector('.prov-sel')?.value||'SAV';
+    if(ref||des)pieces.push({ref,designation:des,qte,pu,provenance:prov});
   });
   return{
     numero:currentNum,date:document.getElementById('date_inter').value,
@@ -913,7 +922,7 @@ function getFormData(){
     objet:document.getElementById('objet').value,travaux:document.getElementById('travaux').value,
     a_prevoir:document.getElementById('a_prevoir').value,pieces,
     photos:photos.map(p=>({id:p.id,caption:p.caption})),
-    temps:{depart:document.getElementById('h_dep').value,arrivee:document.getElementById('h_arr').value,fin:document.getElementById('h_fin').value,km:document.getElementById('km').value},
+    temps:{depart:document.getElementById('h_dep').value,fin:document.getElementById('h_fin').value,km:document.getElementById('km').value},
     pointage:{taux_mo:document.getElementById('taux_mo').value,forfait_dep:document.getElementById('forfait_dep').value,dep_facture:document.getElementById('dep_fact').value,tps_inter:_H},
     totaux:{ht:_HT,ttc:_TTC},prix_mode:prixMode,
     signataire:{nom:document.getElementById('sig_nom').value,fonction:document.getElementById('sig_fn').value},
@@ -939,8 +948,7 @@ function resetForm(){
   photos=[];renderPhotos();typeSelected='';pc=0;_P=0;_H=0;selectedClientId=null;
   ['t-p','t-mo','t-d','t-ht','t-tva'].forEach(id=>document.getElementById(id).textContent='0,00 €');
   document.getElementById('t-ttc').textContent='0,00 €';
-  ['disp-route','disp-inter'].forEach(id=>document.getElementById(id).textContent='—');
-  document.getElementById('disp-dep').textContent='—';
+  document.getElementById('disp-inter').textContent='—';
   document.getElementById('coher-alert').style.display='none';
   document.getElementById('odoo-st').style.display='none';
   ['c1','c2'].forEach(clearSig);
