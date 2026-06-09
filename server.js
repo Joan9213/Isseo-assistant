@@ -313,58 +313,56 @@ function genererHTMLDevis(d){
 </body></html>`;
 }
 
-// ── ENVOI EMAIL SENDGRID ──
+// ── ENVOI EMAIL BREVO (SMTP) ──
 async function envoyerEmailSendGrid(d, htmlRapport, htmlDevis){
-  const sgMail = require('@sendgrid/mail');
-  sgMail.setApiKey(SENDGRID_KEY);
+  const nodemailer = require('nodemailer');
+  const transporter = nodemailer.createTransport({
+    host: 'smtp-relay.brevo.com',
+    port: 587,
+    auth: { user: 'contact@isseochariot.fr', pass: SENDGRID_KEY }
+  });
 
   const clientEmail = d.client_email||null;
   const sujet = `Rapport d'intervention ISSEO – ${d.numero||'RI'} – ${d.client||'Client'}`;
 
   // Email à ISSEO avec rapport complet
-  const msgIsseo = {
+  await transporter.sendMail({
+    from: `ISSEO Rapports <${ISSEO_EMAIL}>`,
     to: ISSEO_EMAIL,
-    from: {email: ISSEO_EMAIL, name: 'ISSEO Rapports'},
     subject: sujet,
     html: htmlRapport,
     attachments:[{
-      content: Buffer.from(htmlRapport).toString('base64'),
+      content: Buffer.from(htmlRapport).toString('utf-8'),
       filename: `${d.numero||'RI'}_${(d.client||'client').replace(/\s/g,'_')}.html`,
-      type: 'text/html',
-      disposition: 'attachment'
+      contentType: 'text/html'
     }]
-  };
-  await sgMail.send(msgIsseo);
+  });
 
   // Email au client (version sans prix confidentiels)
   if(clientEmail){
-    const msgClient = {
+    await transporter.sendMail({
+      from: `ISSEO Chariots Élévateurs <${ISSEO_EMAIL}>`,
       to: clientEmail,
-      from: {email: ISSEO_EMAIL, name: 'ISSEO Chariots Élévateurs'},
       subject: sujet,
       html: htmlRapport
-    };
-    await sgMail.send(msgClient);
+    });
   }
 
   // Email devis si travaux à prévoir
   if(htmlDevis){
-    const msgDevis = {
+    await transporter.sendMail({
+      from: `ISSEO Rapports <${ISSEO_EMAIL}>`,
       to: ISSEO_EMAIL,
-      from: {email: ISSEO_EMAIL, name: 'ISSEO Rapports'},
       subject: `⚡ DEVIS à valider – ${d.client||'Client'} – Suite RI ${d.numero||''}`,
       html: htmlDevis
-    };
-    await sgMail.send(msgDevis);
-
+    });
     if(clientEmail){
-      const msgDevisClient = {
+      await transporter.sendMail({
+        from: `ISSEO Chariots Élévateurs <${ISSEO_EMAIL}>`,
         to: clientEmail,
-        from: {email: ISSEO_EMAIL, name: 'ISSEO Chariots Élévateurs'},
         subject: `Devis ISSEO – Travaux à prévoir – ${d.client||'Client'}`,
         html: htmlDevis
-      };
-      await sgMail.send(msgDevisClient);
+      });
     }
   }
 }
